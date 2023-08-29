@@ -38,7 +38,7 @@ def get_tbl(txt):
                 num_spaces_total.append(num_spaces)
             txt_file.close()
         
-        num_col = Average(num_spaces_total) + 1
+        num_col = Average(num_spaces_total) - 1
         col_width = int(Average(num_words_total)/num_col)
         col_specs = []
         start = 0
