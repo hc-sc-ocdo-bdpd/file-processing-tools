@@ -50,6 +50,47 @@ def test_save_txt_metadata():
         # Clean up by removing the copied file after the test is done
         os.remove(copy_test_txt_path)
 
+def test_txt_save_as_pdf():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_txt_path = 'tests/resources/test_files/government_of_canada_wikipedia.txt'
+    output_pdf_path = 'tests/resources/test_files/government_of_canada_wikipedia.pdf'
+
+    try:
+        # Convert TXT to PDF
+        txt_file = File(test_txt_path)
+        txt_file.processor.save_as_pdf(output_pdf_path)
+        
+        # Verify the PDF file was created and is not empty
+        assert os.path.exists(output_pdf_path)
+        assert os.path.getsize(output_pdf_path) > 0
+
+    finally:
+        # Clean up by removing the PDF file after the test is done
+        if os.path.exists(output_pdf_path):
+            os.remove(output_pdf_path)
+
+def test_txt_save_as_docx():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_txt_path = 'tests/resources/test_files/government_of_canada_wikipedia.txt'
+    output_docx_path = 'tests/resources/test_files/government_of_canada_wikipedia.docx'
+
+    try:
+        # Convert TXT to DOCX
+        txt_file = File(test_txt_path)
+        txt_file.processor.save_as_docx(output_docx_path)
+        
+        assert os.path.exists(output_docx_path)
+        assert os.path.getsize(output_docx_path) > 0
+             
+
+    finally:
+        # Clean up by removing the DOCX file after the test is done
+        if os.path.exists(output_docx_path):
+            os.remove(output_docx_path)
 
 def test_docx_text():
     from file_processing.file import File
@@ -109,9 +150,6 @@ def test_docx_last_modified_by():
     assert docx_2.metadata['last_modified_by'] == test_last_modified_by_2
 
 
-    import os
-
-
 def test_save_docx_metadata():
     from file_processing.file import File
     from docx import Document
@@ -149,6 +187,51 @@ def test_save_docx_metadata():
         os.remove(copy_test_docx_path)
 
 
+def test_docx_save_as_txt():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_docx_path = 'tests/resources/test_files/HealthCanadaOverviewFromWikipedia.docx'
+    output_txt_path = 'tests/resources/test_files/HealthCanadaOverviewFromWikipedia_output.txt'
+
+    try:
+        # Convert DOCX to TXT
+        docx_file = File(test_docx_path)
+        docx_file.processor.save_as_txt(output_txt_path)
+        
+        # Verify the TXT file was created and is not empty
+        assert os.path.exists(output_txt_path)
+        with open(output_txt_path, 'r', encoding='utf-8') as file:
+            txt_content = file.read()
+        assert len(txt_content) > 0
+        assert txt_content == docx_file.metadata['text']
+
+    finally:
+        # Clean up by removing the TXT file after the test is done
+        if os.path.exists(output_txt_path):
+            os.remove(output_txt_path)
+
+def test_docx_save_as_pdf():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_docx_path = 'tests/resources/test_files/HealthCanadaOverviewFromWikipedia.docx'
+    output_pdf_path = 'tests/resources/test_files/HealthCanadaOverviewFromWikipedia_output.pdf'
+
+    try:
+        # Convert DOCX to PDF
+        docx_file = File(test_docx_path)
+        docx_file.processor.save_as_pdf(output_pdf_path)
+        
+        # Verify the PDF file was created and is not empty
+        assert os.path.exists(output_pdf_path)
+        assert os.path.getsize(output_pdf_path) > 0
+
+    finally:
+        # Clean up by removing the PDF file after the test is done
+        if os.path.exists(output_pdf_path):
+            os.remove(output_pdf_path)
+
 
 def test_pdf_ocr_text_found():
     from file_processing.file import File
@@ -156,6 +239,47 @@ def test_pdf_ocr_text_found():
     ocr_text = pdf_1.metadata['ocr_text']
     assert len(ocr_text) > 0
 
+def test_pdf_save_as_txt():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_pdf_path = 'tests/resources/test_files/HealthCanadaOverviewFromWikipedia.pdf'
+    output_txt_path = 'tests/resources/test_files/HealthCanadaOverviewFromWikipedia.txt'
+
+    try:
+        # Convert PDF to TXT
+        pdf_file = File(test_pdf_path)
+        pdf_file.processor.save_as_txt(output_txt_path)
+        
+        # Verify the TXT file was created and is not empty
+        assert os.path.exists(output_txt_path)
+        assert os.path.getsize(output_txt_path) > 0
+
+    finally:
+        # Clean up by removing the TXT file after the test is done
+        if os.path.exists(output_txt_path):
+            os.remove(output_txt_path)
+    
+def test_pdf_save_as_docx():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_pdf_path = 'tests/resources/test_files/HealthCanadaOverviewFromWikipedia.pdf'
+    output_docx_path = 'tests/resources/test_files/HealthCanadaOverviewFromWikipedia_copy.docx'
+
+    try:
+        # Convert PDF to DOCX
+        pdf_file = File(test_pdf_path)
+        pdf_file.processor.save_as_docx(output_docx_path)
+        
+        # Verify the DOCX file was created and is not empty
+        assert os.path.exists(output_docx_path)
+        assert os.path.getsize(output_docx_path) > 0
+
+    finally:
+        # Clean up by removing the DOCX file after the test is done
+        if os.path.exists(output_docx_path):
+            os.remove(output_docx_path)
     
 def test_msg_text():
     from file_processing.file import File
@@ -213,6 +337,48 @@ def test_save_msg_metadata():
 
     finally:
         os.remove(copy_test_msg_path)
+
+def test_msg_save_as_txt():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_msg_path = 'tests/resources/test_files/Test Email.msg'
+    output_txt_path = 'tests/resources/test_files/Test Email.txt'
+
+    try:
+        # Convert MSG to TXT
+        msg_file = File(test_msg_path)
+        msg_file.processor.save_as_txt(output_txt_path)
+        
+        # Verify the TXT file was created and is not empty
+        assert os.path.exists(output_txt_path)
+        assert os.path.getsize(output_txt_path) > 0
+
+    finally:
+        # Clean up by removing the TXT file after the test is done
+        if os.path.exists(output_txt_path):
+            os.remove(output_txt_path)
+
+def test_msg_save_as_pdf():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_msg_path = 'tests/resources/test_files/Test Email.msg'
+    output_pdf_path = 'tests/resources/test_files/Test Email.pdf'
+
+    try:
+        # Convert MSG to PDF
+        msg_file = File(test_msg_path)
+        msg_file.processor.save_as_pdf(output_pdf_path)
+        
+        # Verify the PDF file was created and is not empty
+        assert os.path.exists(output_pdf_path)
+        assert os.path.getsize(output_pdf_path) > 0
+
+    finally:
+        # Clean up by removing the PDF file after the test is done
+        if os.path.exists(output_pdf_path):
+            os.remove(output_pdf_path)
 
 def test_png_format():
     from file_processing.file import File
@@ -274,6 +440,27 @@ def test_save_png_metadata():
     finally:
         # Clean up by removing the copied file after the test is done
         os.remove(copy_test_jpeg_path)
+
+def test_png_save_as_pdf():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_png_path = 'tests/resources/test_files/Health_Canada_logo.png'
+    output_pdf_path = 'tests/resources/test_files/Health_Canada_logo.pdf'
+
+    try:
+        # Convert JPEG to PDF
+        png_file = File(test_png_path)
+        png_file.processor.save_as_pdf(output_pdf_path)
+        
+    # Verify the PDF file was created and is not empty
+        assert os.path.exists(output_pdf_path)
+        assert os.path.getsize(output_pdf_path) > 0
+
+    finally:
+        # Clean up by removing the PDF file after the test is done
+        if os.path.exists(output_pdf_path):
+            os.remove(output_pdf_path)
     
     
 def test_excel_sheets():
@@ -444,6 +631,26 @@ def test_save_ppt_metadata():
     finally:
         # Clean up by removing the copied file after the test is done
         os.remove(copy_test_ppt_path)
+
+def test_pptx_save_as_pdf():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_html_path = 'tests/resources/test_files/HealthCanadaOverviewFromWikipedia.pptx'
+    output_txt_path = 'tests/resources/test_files/_HealthCanadaOverviewFromWikipedia_.pdf'
+    try:
+        # Convert PPTX to PDF
+        html_file = File(test_html_path)
+        html_file.processor.save_as_pdf(output_txt_path)
+        
+    # Verify the PDF file was created and is not empty
+        assert os.path.exists(output_txt_path)
+        assert os.path.getsize(output_txt_path) > 0
+
+    finally:
+        # Clean up by removing the PDF file after the test is done
+        if os.path.exists(output_txt_path):
+            os.remove(output_txt_path)
     
 def test_rtf_text():
     from file_processing.file import File
@@ -475,6 +682,48 @@ def test_save_rtf_metadata():
     finally:
         # Clean up by removing the copied file after the test is done
         os.remove(copy_test_rtf_path)
+
+def test_rtf_save_as_txt():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_rtf_path = 'tests/resources/test_files/Test_for_RTF.rtf'
+    output_txt_path = 'tests/resources/test_files/Test_for_RTF.txt'
+
+    try:
+        # Convert RTF to TXT
+        rtf_file = File(test_rtf_path)
+        rtf_file.processor.save_as_txt(output_txt_path)
+        
+    # Verify the TXT file was created and is not empty
+        assert os.path.exists(output_txt_path)
+        assert os.path.getsize(output_txt_path) > 0
+
+    finally:
+        # Clean up by removing the TXT file after the test is done
+        if os.path.exists(output_txt_path):
+            os.remove(output_txt_path)
+
+def test_rtf_save_as_docx():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_rtf_path = 'tests/resources/test_files/Test_for_RTF.rtf'
+    output_docx_path = 'tests/resources/test_files/Test_for_RTF.docx'
+
+    try:
+        # Convert RTF to DOCX
+        rtf_file = File(test_rtf_path)
+        rtf_file.processor.save_as_docx(output_docx_path)
+        
+    # Verify the DOCX file was created and is not empty
+        assert os.path.exists(output_docx_path)
+        assert os.path.getsize(output_docx_path) > 0
+
+    finally:
+        # Clean up by removing the DOCX file after the test is done
+        if os.path.exists(output_docx_path):
+            os.remove(output_docx_path)
                  
 def test_html_text():
     from file_processing.file import File
@@ -520,6 +769,26 @@ def test_save_html_metadata():
     finally:
         # Clean up by removing the copied file after the test is done
         os.remove(copy_test_html_path)
+
+def test_html_save_as_txt():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_html_path = 'tests/resources/test_files/Health - Canada.ca.html'
+    output_txt_path = 'tests/resources/test_files/Health - Canada.ca.txt'
+    try:
+        # Convert HTML to TXT
+        html_file = File(test_html_path)
+        html_file.processor.save_as_txt(output_txt_path)
+        
+    # Verify the TXT file was created and is not empty
+        assert os.path.exists(output_txt_path)
+        assert os.path.getsize(output_txt_path) > 0
+
+    finally:
+        # Clean up by removing the TXT file after the test is done
+        if os.path.exists(output_txt_path):
+            os.remove(output_txt_path)
 
     
 def test_xml_text():
@@ -627,3 +896,24 @@ def test_save_jpeg_metadata():
     finally:
         # Clean up by removing the copied file after the test is done
         os.remove(copy_test_jpeg_path)
+
+def test_jpeg_save_as_pdf():
+    from file_processing.file import File
+
+    # Paths of test files
+    test_jpeg_path = 'tests/resources/test_files/HealthCanada.jpeg'
+    output_pdf_path = 'tests/resources/test_files/HealthCanada_.pdf'
+
+    try:
+        # Convert JPEG to PDF
+        jpeg_file = File(test_jpeg_path)
+        jpeg_file.processor.save(output_pdf_path)
+        
+    # Verify the PDF file was created and is not empty
+        assert os.path.exists(output_pdf_path)
+        assert os.path.getsize(output_pdf_path) > 0
+
+    finally:
+        # Clean up by removing the PDF file after the test is done
+        if os.path.exists(output_pdf_path):
+            os.remove(output_pdf_path)

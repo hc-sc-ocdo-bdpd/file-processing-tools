@@ -1,6 +1,8 @@
 from file_processor_strategy import FileProcessorStrategy
 from docx import Document
 from docx.oxml import OxmlElement
+from docx2pdf import convert
+
 
 
 class DocxFileProcessor(FileProcessorStrategy):
@@ -40,3 +42,11 @@ class DocxFileProcessor(FileProcessorStrategy):
         except Exception as e:
             print(f"Error encountered while opening or processing {file_path}: {e}")
             return None
+
+    def save_as_txt(self, output_path: str) -> None:
+        text = self.extract_text_from_docx(Document(self.file_path))
+        with open(output_path, 'w', encoding='utf-8') as file:
+            file.write(text)
+
+    def save_as_pdf(self, output_path: str) -> None:
+        convert(self.file_path, output_path)

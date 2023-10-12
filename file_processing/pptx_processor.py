@@ -1,6 +1,7 @@
 from file_processor_strategy import FileProcessorStrategy
 from pptx import Presentation
 
+
 class PptxFileProcessor(FileProcessorStrategy):
     def __init__(self, file_path: str) -> None:
         super().__init__(file_path)
@@ -26,6 +27,24 @@ class PptxFileProcessor(FileProcessorStrategy):
         
         save_path = output_path or self.file_path
         ppt.save(save_path)
+
+
+    def save_as_pdf(self, output_path: str = None) -> None:
+        import comtypes.client
+        import os
+        import sys
+        input = sys.argv[1]
+        output = sys.argv[2]
+
+        input = os.path.abspath(self.file_path)
+        output = os.path.abspath(output_path)
+        powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
+
+        slides = powerpoint.Presentations.Open(input)
+
+        slides.SaveAs(output, 32)
+
+        slides.Close()
 
     @staticmethod
     def extract_text_from_pptx(ppt: Presentation) -> str:

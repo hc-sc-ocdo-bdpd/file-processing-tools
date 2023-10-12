@@ -30,3 +30,8 @@ class HtmlFileProcessor(FileProcessorStrategy):
         save_path = output_path or self.file_path
         with open(save_path, 'w', encoding = self.metadata['encoding']) as f:
             f.write(self.metadata['text'])
+    
+    def save_as_txt(self, output_path: str = None) -> None:
+        save_path = output_path or self.file_path
+        with open(save_path, 'w', encoding = self.metadata['encoding']) as f:
+            f.write(self.metadata['text'])

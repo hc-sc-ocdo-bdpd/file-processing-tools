@@ -19,6 +19,9 @@ chardet==5.2.0
 extract-msg
 python-pptx
 striprtf
+docx2pdf
+fpdf
+comtypes
 
 #Used To read excel files with pandas
 openpyxl>=3.1.2

@@ -22,3 +22,8 @@ class JpegFileProcessor(FileProcessorStrategy):
         
         save_path = output_path or self.file_path
         image.save(save_path)
+    
+    def save_as_pdf(self, output_path: str) -> None:
+        image = Image.open(self.file_path)
+
+        image.save(output_path, "PDF", resolution=100)

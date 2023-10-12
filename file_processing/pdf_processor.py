@@ -35,4 +35,18 @@ class PdfFileProcessor(FileProcessorStrategy):
         except Exception as e:
             print(f"Error encountered while opening or processing {file_path}: {e}")
             return None
-        
+    
+    def save_as_txt(self, output_path: str) -> None:
+        import chardet
+        text = self.extract_text_from_pdf(self.file_path)
+        encoding = chardet.detect(open(self.file_path, "rb").read())['encoding']
+        with open(output_path, 'w', encoding = encoding) as f:
+            f.write(text)
+    
+    def save_as_docx(self, output_path: str):
+        from docx import Document
+        text = self.extract_text_from_pdf(self.file_path)
+        docx_file = Document()
+        docx_file.add_paragraph(text)
+        docx_file.save(output_path)
+    
