@@ -4,8 +4,8 @@ from PIL import Image
 from pathlib import Path
 import io
 import getpass
-from file_processor_strategy import FileProcessorStrategy
-from errors import OCRProcessingError
+from .file_processor_strategy import FileProcessorStrategy
+from .errors import OCRProcessingError
 
 # Init for tesseract
 pytesseract.pytesseract.tesseract_cmd = Path('C:/Users') / getpass.getuser() / 'AppData/Local/Programs/Tesseract-OCR/tesseract.exe'
