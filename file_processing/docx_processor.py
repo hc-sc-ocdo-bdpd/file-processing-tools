@@ -1,10 +1,10 @@
-from file_processor_strategy import FileProcessorStrategy
-from docx import Document
 from zipfile import BadZipFile
 from docx.oxml import OxmlElement
 import msoffcrypto
-from errors import FileProcessingFailedError, FileCorruptionError
 from io import BytesIO
+from .file_processor_strategy import FileProcessorStrategy
+from .docx import Document
+from .errors import FileProcessingFailedError, FileCorruptionError
 
 class DocxFileProcessor(FileProcessorStrategy):
     def __init__(self, file_path: str, open_file: bool = True) -> None:

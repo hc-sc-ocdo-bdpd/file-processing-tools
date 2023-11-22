@@ -1,6 +1,6 @@
-from .file_processor_strategy import FileProcessorStrategy
 import csv
 import chardet
+from .file_processor_strategy import FileProcessorStrategy
 from .errors import FileProcessingFailedError
 
 class CsvFileProcessor(FileProcessorStrategy):
