@@ -1,6 +1,6 @@
-from file_processor_strategy import FileProcessorStrategy
 import extract_msg
-from errors import FileProcessingFailedError
+from .file_processor_strategy import FileProcessorStrategy
+from .errors import FileProcessingFailedError
 
 class MsgFileProcessor(FileProcessorStrategy):
     def __init__(self, file_path: str, open_file: bool = True) -> None:
