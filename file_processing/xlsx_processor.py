@@ -1,9 +1,9 @@
-from file_processor_strategy import FileProcessorStrategy
 from openpyxl import load_workbook 
 from zipfile import BadZipFile
 import msoffcrypto
-from errors import FileProcessingFailedError, FileCorruptionError
 from io import BytesIO
+from .file_processor_strategy import FileProcessorStrategy
+from .errors import FileProcessingFailedError, FileCorruptionError
 
 class xlsxFileProcessor(FileProcessorStrategy):
     def __init__(self, file_path: str, open_file: bool = True) -> None:
