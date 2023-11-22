@@ -1,9 +1,9 @@
 import os
 import csv
-from file import File
 from typing import Optional
 import json
 from tqdm import tqdm
+from .file import File
 
 class Directory:
     def __init__(self, path: str, use_ocr: bool = False) -> None:
