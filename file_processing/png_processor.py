@@ -1,6 +1,6 @@
-from file_processor_strategy import FileProcessorStrategy
 from PIL import Image
-from errors import FileProcessingFailedError
+from .file_processor_strategy import FileProcessorStrategy
+from .errors import FileProcessingFailedError
 
 class PngFileProcessor(FileProcessorStrategy):
     def __init__(self, file_path: str, open_file: bool = True) -> None:
