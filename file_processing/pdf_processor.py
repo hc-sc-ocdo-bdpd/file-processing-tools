@@ -1,6 +1,6 @@
-from file_processor_strategy import FileProcessorStrategy
 from PyPDF2 import PdfReader, PdfWriter
-from errors import FileProcessingFailedError
+from .file_processor_strategy import FileProcessorStrategy
+from .errors import FileProcessingFailedError
 
 class PdfFileProcessor(FileProcessorStrategy):
     def __init__(self, file_path: str, open_file: bool = True) -> None:
