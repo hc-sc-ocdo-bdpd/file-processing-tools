@@ -1,6 +1,6 @@
-from file_processor_strategy import FileProcessorStrategy
 from striprtf.striprtf import rtf_to_text
-from errors import FileProcessingFailedError, UnsupportedFileTypeError
+from .file_processor_strategy import FileProcessorStrategy
+from .errors import FileProcessingFailedError, UnsupportedFileTypeError
 
 class RtfFileProcessor(FileProcessorStrategy):
     def __init__(self, file_path: str, open_file: bool = True) -> None:
