@@ -1,6 +1,6 @@
-from file_processor_strategy import FileProcessorStrategy
 import chardet
-from errors import FileProcessingFailedError
+from .file_processor_strategy import FileProcessorStrategy
+from .errors import FileProcessingFailedError
 
 #Specialized python library for pulling html/xml data...
 #https://beautiful-soup-4.readthedocs.io/en/latest/
