@@ -1,9 +1,9 @@
-from file_processor_strategy import FileProcessorStrategy
 from pptx import Presentation
 from zipfile import BadZipFile
-from errors import FileProcessingFailedError, FileCorruptionError
 import msoffcrypto
 from io import BytesIO
+from .file_processor_strategy import FileProcessorStrategy
+from .errors import FileProcessingFailedError, FileCorruptionError
 
 class PptxFileProcessor(FileProcessorStrategy):
     def __init__(self, file_path: str, open_file: bool = True) -> None:
