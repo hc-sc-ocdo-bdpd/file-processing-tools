@@ -21,8 +21,8 @@ class RtfFileProcessor(FileProcessorStrategy):
 
     def save(self, output_path: str = None) -> None:
         try:
-            save_path = output_path or self.file_path
-            with open(save_path, 'w') as f:
-                f.write(self.metadata['text'])
+            with open(self.file_path, 'rb') as src_file:
+                with open(output_path, 'wb') as dest_file:
+                    dest_file.write(src_file.read())
         except Exception as e:
             raise FileProcessingFailedError(f"Error encountered while saving {self.file_path}: {e}")

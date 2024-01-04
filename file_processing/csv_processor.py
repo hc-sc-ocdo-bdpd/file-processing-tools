@@ -14,16 +14,16 @@ class CsvFileProcessor(FileProcessorStrategy):
             return
         try:
             encoding = chardet.detect(open(self.file_path, 'rb').read())['encoding']
-            with open(self.file_path, 'r', encoding=encoding) as f:
+            with open(self.file_path, 'r', newline = '\n', encoding=encoding) as f:
                 reader = csv.reader(f)
                 rows = [row for row in reader] # List of rows, e.g. [['row', 'one'], ['row', 'two']]
-                text = '\n'.join([','.join(row) for row in rows])
+                text = '\n'.join(['","'.join(row) for row in rows])
                 num_cells = 0
                 empty_cells = 0
                 for row in rows:
                     for i in range(len(row)):
                         num_cells += 1
-                        if row[i] == '':
+                        if row[i] == '' or row[i] == ' ':
                             empty_cells += 1
                 self.metadata.update({
                     'text': text,
@@ -40,10 +40,10 @@ class CsvFileProcessor(FileProcessorStrategy):
     def save(self, output_path: str = None) -> None:
         try:
             save_path = output_path or self.file_path
-            with open(save_path, 'w', encoding = self.metadata['encoding']) as f:
+            with open(save_path, 'w', newline = '\n', encoding = self.metadata['encoding']) as f:
                 writer = csv.writer(f)
                 rows = self.metadata['text'].split('\n')
                 for row in rows:
-                    writer.writerow(row.split(','))
+                    writer.writerow(row.split('","'))
         except Exception as e:
             raise FileProcessingFailedError(f"Error encountered while saving file {self.file_path} to {save_path}: {e}")

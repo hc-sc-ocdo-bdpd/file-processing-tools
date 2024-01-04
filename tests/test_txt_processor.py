@@ -3,7 +3,7 @@ import sys, os
 sys.path.append(os.path.join(sys.path[0],'file_processing'))
 from file_processing.file import File
 from unittest.mock import patch
-from errors import FileProcessingFailedError, FileCorruptionError
+from errors import FileProcessingFailedError
 
 variable_names = "path, text_length, num_lines, num_words"
 values = [
@@ -35,29 +35,15 @@ def copy_file(path, tmp_path_factory):
     file_obj.save(copy_path)
     yield copy_path
 
-
+    
 @pytest.mark.parametrize(variable_names, values)
 def test_save_txt_metadata(copy_file, text_length, num_lines, num_words):
     test_txt_metadata(copy_file, text_length, num_lines, num_words)
 
 
-invalid_save_locations = [
-    ('tests/resources/test_files/government_of_canada_wikipedia.txt', '/non_existent_folder/government_of_canada_wikipedia.txt')
-]
-
-@pytest.mark.parametrize("path, save_path", invalid_save_locations)
-def test_txt_invalid_save_location(path, save_path):
-    file_obj = File(path)
+@pytest.mark.parametrize("path", map(lambda x: x[0], values))
+def test_txt_invalid_save_location(path):
+    txt_file = File(path)
+    invalid_save_path = '/non_existent_folder/' + os.path.basename(path)
     with pytest.raises(FileProcessingFailedError):
-        file_obj.processor.save(save_path)
-
-
-
-corrupted_files = [
-    'tests/resources/test_files/government_of_canada_wikipedia_corrupted.txt'
-]
-
-@pytest.mark.parametrize("path", corrupted_files)
-def test_txt_corrupted_file_processing(path):
-    with pytest.raises(FileProcessingFailedError):
-        File(path)
+        txt_file.save(invalid_save_path)

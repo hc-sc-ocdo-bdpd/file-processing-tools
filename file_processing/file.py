@@ -21,7 +21,7 @@ from py_processor import PyFileProcessor
 from errors import UnsupportedFileTypeError, NotOCRApplciableError, NotTranscriptionApplicableError
 
 class File:
-    OCR_APPLICABLE_EXTENSIONS = {".pdf", ".jpeg", ".png"}
+    OCR_APPLICABLE_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png"}
     TRANSCRIPTION_APPLICABLE_EXTENSIONS = {".mp3", ".wav", ".mp4", ".flac", ".aiff", ".ogg"}
 
     PROCESSORS = {
