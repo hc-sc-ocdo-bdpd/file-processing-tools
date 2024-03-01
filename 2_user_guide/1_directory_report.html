@@ -1,0 +1,411 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Analyzing a directory’s metadata" href="2_directory_analytics.html" /><link rel="prev" title="Getting started" href="../1_tutorial/2_getting_started.html" />
+
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>Generating a metadata report from a directory - File Processing</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/fonts.css?v=05456d46" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  --color-brand-primary: #702963;
+  --color-brand-content: #702963;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #D7BFDC;
+  --color-brand-content: #D7BFDC;
+  --color-background-primary: #242424;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #D7BFDC;
+  --color-brand-content: #D7BFDC;
+  --color-background-primary: #242424;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">File Processing</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">File Processing</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Tutorial:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../1_tutorial/1_installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../1_tutorial/2_getting_started.html">Getting started</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Generating a metadata report from a directory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_directory_analytics.html">Analyzing a directory’s metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_directory_similarity.html">Identifying similar files within a directory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4_directory_filters.html">Filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../3_developer_guide/1_file_organization.html">File Organization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3_developer_guide/2_architecture.html">Architecture and Design Patterns</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3_developer_guide/3_unit_tests.html">Unit Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3_developer_guide/4_devops.html">CI/CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3_developer_guide/5_deployment.html">Versioning</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../4_additional_information/1_about.html">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../4_additional_information/2_debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../4_additional_information/3_limitations.html">Limitations and Future Work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../4_additional_information/4_citations.html">Citations</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <br>
+<section id="generating-a-metadata-report-from-a-directory">
+<h1>Generating a metadata report from a directory<a class="headerlink" href="#generating-a-metadata-report-from-a-directory" title="Link to this heading">#</a></h1>
+<br>
+<section id="report-formatting">
+<h2>Report Formatting<a class="headerlink" href="#report-formatting" title="Link to this heading">#</a></h2>
+<p>Parameters - <code class="docutils literal notranslate"><span class="pre">split_metadata</span></code></p>
+<p>This parameter splits the file metadata dictionary such that each key becomes its own column. This is designed to improve readability. If <code class="docutils literal notranslate"><span class="pre">keywords</span></code> are enabled, then each keyword will also appear in its own column.</p>
+<div class="tab-set docutils">
+<input checked="True" class="tab-input" id="tab-set--0-input--1" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--1">split_metadata=False</label><div class="tab-content docutils">
+<p>The <code class="docutils literal notranslate"><span class="pre">metadata</span></code> column is a dictionary.</p>
+<img alt="../_images/report_split_metadata_false.png" class="align-center" src="../_images/report_split_metadata_false.png" />
+</div>
+<input class="tab-input" id="tab-set--0-input--2" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--2">split_metadata=True</label><div class="tab-content docutils">
+<p>The <code class="docutils literal notranslate"><span class="pre">metadata</span></code> column is extracted into separate columns.</p>
+<img alt="../_images/report_split_metadata_true.png" class="align-center" src="../_images/report_split_metadata_true.png" />
+</div>
+</div>
+<br>
+</section>
+<section id="filters-and-migrate-filters">
+<h2>Filters and Migrate Filters<a class="headerlink" href="#filters-and-migrate-filters" title="Link to this heading">#</a></h2>
+<p>Parameters - <code class="docutils literal notranslate"><span class="pre">filters</span></code>, <code class="docutils literal notranslate"><span class="pre">migrate_filters</span></code></p>
+<p>Filters are used to determine what files appear on the report. Various options are discussed in <a class="reference internal" href="4_directory_filters.html"><span class="std std-doc">Filters</span></a>.</p>
+<p>Migration filters are similar, except they create a <code class="docutils literal notranslate"><span class="pre">Migrate</span></code> column. Each file then has a <code class="docutils literal notranslate"><span class="pre">1</span></code> if it satisfies the filter criteria, otherwise <code class="docutils literal notranslate"><span class="pre">0</span></code>. The purpose of this is to complement the <code class="docutils literal notranslate"><span class="pre">filter</span></code> option by selectively indicating files to migrate while retaining a wholistic view of the directory contents. The possible values of <code class="docutils literal notranslate"><span class="pre">migrate_filters</span></code> are the same as the <code class="docutils literal notranslate"><span class="pre">filters</span></code> options.</p>
+<p>The below example demonstrates filtering by file extensions and indicating files to migrate by imposing a maximum byte size.</p>
+<div class="tab-set docutils">
+<input checked="True" class="tab-input" id="tab-set--1-input--1" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--1">Code</label><div class="tab-content docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">file_processing</span> <span class="kn">import</span> <span class="n">Directory</span>
+
+<span class="n">directory</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="s1">&#39;tests/resources/directory_test_files&#39;</span><span class="p">)</span>
+<span class="n">directory</span><span class="o">.</span><span class="n">generate_report</span><span class="p">(</span><span class="n">report_file</span><span class="o">=</span><span class="s1">&#39;temp1.csv&#39;</span><span class="p">,</span> 
+                          <span class="n">filters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;extensions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.docx&#39;</span><span class="p">,</span> <span class="s1">&#39;.pptx&#39;</span><span class="p">]},</span> 
+                          <span class="n">migrate_filters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;max_size&#39;</span><span class="p">:</span> <span class="mi">50000</span><span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--1-input--2" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--2">Report</label><div class="tab-content docutils">
+<img alt="../_images/report_filtered.png" class="align-center" src="../_images/report_filtered.png" />
+</div>
+</div>
+<br>
+</section>
+<section id="text-and-keyword-extraction">
+<h2>Text and Keyword Extraction<a class="headerlink" href="#text-and-keyword-extraction" title="Link to this heading">#</a></h2>
+<p>Parameters - <code class="docutils literal notranslate"><span class="pre">include_text</span></code>, <code class="docutils literal notranslate"><span class="pre">char_limit</span></code>, <code class="docutils literal notranslate"><span class="pre">keywords</span></code>, <code class="docutils literal notranslate"><span class="pre">check_title_keywords</span></code></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">include_text</span></code> parameter decides whether to extract text from files, and the <code class="docutils literal notranslate"><span class="pre">char_limit</span></code> limit imposes a charater limit on each metadata value.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">keywords</span></code> parameter is a list of words to scan the text for. The number of keywords that appear in the <code class="docutils literal notranslate"><span class="pre">text</span></code> metadata will be summed and displayed. If <code class="docutils literal notranslate"><span class="pre">check_title_keywords</span></code> is enabled, the the file name will also be searched for keywords. Note that <code class="docutils literal notranslate"><span class="pre">include_text=True</span></code> is required to search for keywords in the text, but not for searching for keywords in the file name. Finally, the keyword search is restricted by the <code class="docutils literal notranslate"><span class="pre">char_limit</span></code>. For example, if the <code class="docutils literal notranslate"><span class="pre">char_limit=100</span></code>, then only the first 100 characters are searched for the keyword.</p>
+<div class="tab-set docutils">
+<input checked="True" class="tab-input" id="tab-set--2-input--1" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--1">Code</label><div class="tab-content docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">file_processing</span> <span class="kn">import</span> <span class="n">Directory</span>
+
+<span class="n">directory</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="s1">&#39;tests/resources/directory_test_files&#39;</span><span class="p">)</span>
+<span class="n">directory</span><span class="o">.</span><span class="n">generate_report</span><span class="p">(</span><span class="n">report_file</span><span class="o">=</span><span class="s1">&#39;temp1.csv&#39;</span><span class="p">,</span> 
+                          <span class="n">keywords</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Health&#39;</span><span class="p">,</span> <span class="s1">&#39;Canada&#39;</span><span class="p">],</span>
+                          <span class="n">check_title_keywords</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">include_text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">char_limit</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                          <span class="n">split_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--2-input--2" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--2">split_metadata=False</label><div class="tab-content docutils">
+<p>The keywords columns are kept in their respective columns in a dictionary format.</p>
+<img alt="../_images/report_keywords_no_split.png" class="align-center" src="../_images/report_keywords_no_split.png" />
+</div>
+<input class="tab-input" id="tab-set--2-input--3" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--3">split_metadata=True</label><div class="tab-content docutils">
+<p>The keywords columns are split by each word.</p>
+<img alt="../_images/report_keywords_split.png" class="align-center" src="../_images/report_keywords_split.png" />
+</div>
+</div>
+<br>
+</section>
+<section id="file-specific-metadata">
+<h2>File-specific Metadata<a class="headerlink" href="#file-specific-metadata" title="Link to this heading">#</a></h2>
+<p>Parameters - <code class="docutils literal notranslate"><span class="pre">open_files</span></code></p>
+<p>This setting controls whether file-specific metadata is computed. When set to <code class="docutils literal notranslate"><span class="pre">False</span></code>, files will not be openned and only generic metadata will be extracted. The runtime will also be drastically faster.</p>
+<div class="tab-set docutils">
+<input checked="True" class="tab-input" id="tab-set--3-input--1" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--1">open_files=False</label><div class="tab-content docutils">
+<p>Only generic metadata appears.</p>
+<img alt="../_images/report_open_files_false.png" class="align-center" src="../_images/report_open_files_false.png" />
+</div>
+<input class="tab-input" id="tab-set--3-input--2" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--2">open_files=True</label><div class="tab-content docutils">
+<p>The <code class="docutils literal notranslate"><span class="pre">metadata</span></code> column with file-specific metadata appears.</p>
+<img alt="../_images/report_open_files_true.png" class="align-center" src="../_images/report_open_files_true.png" />
+</div>
+</div>
+<br>
+</section>
+<section id="batch-running">
+<h2>Batch Running<a class="headerlink" href="#batch-running" title="Link to this heading">#</a></h2>
+<p>Parameters - <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>, <code class="docutils literal notranslate"><span class="pre">recovery_mode</span></code>, <code class="docutils literal notranslate"><span class="pre">start_at</span></code></p>
+<p>By default, files are read, filtered, then processed in batches of 500 before being written to the output CSV. This is to prevent losing all data if the program were to crash. A higher batch size is recommended for larger directories.</p>
+<p>Related to the issue of crashing is the option to enable <code class="docutils literal notranslate"><span class="pre">recovery_mode</span></code>, which reads how far the last execution got based on how many lines are in the CSV file. It will then compute the <code class="docutils literal notranslate"><span class="pre">start_at</span></code> index, which is the <em>n</em>th file to start processing at (irrespective of filters). This <code class="docutils literal notranslate"><span class="pre">start_at</span></code> parameter can also be manually set. Also note that <code class="docutils literal notranslate"><span class="pre">recovery_mode</span></code> will prevent the overwriting of the existing report - any further data will be appended to what is already there.</p>
+<p>Usage: By default, <code class="docutils literal notranslate"><span class="pre">batch_size=500</span></code>, <code class="docutils literal notranslate"><span class="pre">recovery_mode=False</span></code>, <code class="docutils literal notranslate"><span class="pre">start_at=0</span></code>. Suppose we are processing a large directory of ~10000 files and the program just crashed so we have an incomplete report. We would want a larger batch size and to enable <code class="docutils literal notranslate"><span class="pre">recovery_mode</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">file_processing</span> <span class="kn">import</span> <span class="n">Directory</span>
+
+<span class="n">directory</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+<span class="n">directory</span><span class="o">.</span><span class="n">generate_report</span><span class="p">(</span><span class="n">report_file</span><span class="o">=</span><span class="s1">&#39;metadata.csv&#39;</span><span class="p">,</span>
+                          <span class="n">batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                          <span class="n">recovery_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="2_directory_analytics.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Analyzing a directory’s metadata</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../1_tutorial/2_getting_started.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Getting started</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, hc-sc-ocdo-bdpd
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Generating a metadata report from a directory</a><ul>
+<li><a class="reference internal" href="#report-formatting">Report Formatting</a></li>
+<li><a class="reference internal" href="#filters-and-migrate-filters">Filters and Migrate Filters</a></li>
+<li><a class="reference internal" href="#text-and-keyword-extraction">Text and Keyword Extraction</a></li>
+<li><a class="reference internal" href="#file-specific-metadata">File-specific Metadata</a></li>
+<li><a class="reference internal" href="#batch-running">Batch Running</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/tabs.js?v=3ee01567"></script>
+    </body>
+</html>

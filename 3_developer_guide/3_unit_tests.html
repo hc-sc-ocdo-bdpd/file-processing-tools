@@ -1,0 +1,501 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="CI/CD" href="4_devops.html" /><link rel="prev" title="Architecture and Design Patterns" href="2_architecture.html" />
+
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>Unit Tests - File Processing</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/fonts.css?v=05456d46" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  --color-brand-primary: #702963;
+  --color-brand-content: #702963;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #D7BFDC;
+  --color-brand-content: #D7BFDC;
+  --color-background-primary: #242424;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #D7BFDC;
+  --color-brand-content: #D7BFDC;
+  --color-background-primary: #242424;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">File Processing</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">File Processing</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Tutorial:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../1_tutorial/1_installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../1_tutorial/2_getting_started.html">Getting started</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../2_user_guide/1_directory_report.html">Generating a metadata report from a directory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2_user_guide/2_directory_analytics.html">Analyzing a directory’s metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2_user_guide/3_directory_similarity.html">Identifying similar files within a directory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2_user_guide/4_directory_filters.html">Filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="1_file_organization.html">File Organization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_architecture.html">Architecture and Design Patterns</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Unit Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4_devops.html">CI/CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5_deployment.html">Versioning</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../4_additional_information/1_about.html">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../4_additional_information/2_debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../4_additional_information/3_limitations.html">Limitations and Future Work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../4_additional_information/4_citations.html">Citations</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <br>
+<section id="unit-tests">
+<h1>Unit Tests<a class="headerlink" href="#unit-tests" title="Link to this heading">#</a></h1>
+<p>As of writing, there are 308 unit tests that cover each class. Every processor class (ex. <code class="docutils literal notranslate"><span class="pre">docx-processor</span></code>) has its respective test file, with the exception of the directory processor which has 1 test file per class method.</p>
+<br>
+<section id="unit-testing-overview">
+<h2>Unit Testing Overview<a class="headerlink" href="#unit-testing-overview" title="Link to this heading">#</a></h2>
+<p>This section serves as an introduction to unit testing, specifically with the <code class="docutils literal notranslate"><span class="pre">pytest</span></code> library.</p>
+<br>
+<section id="design">
+<h3>Design<a class="headerlink" href="#design" title="Link to this heading">#</a></h3>
+<p>Unit tests are typically written in the <code class="docutils literal notranslate"><span class="pre">tests/</span></code> folder which is on the same level as the <code class="docutils literal notranslate"><span class="pre">src/</span></code> folder. Assuming the modules in the <code class="docutils literal notranslate"><span class="pre">src/</span></code> folder are packaged appropriately, the unit tests can directly access source code via <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">file_processing.file_name</span> <span class="pre">import</span> <span class="pre">Class</span></code>.</p>
+<p>Writing unit tests is similar to writing normal Python conditions, but with <code class="docutils literal notranslate"><span class="pre">assert</span></code> statements and having each test in its separate function. A good practice is to break down tests into small units such that each test will test for a very specific functionality, as opposed to a big test with many assertions.</p>
+<br>
+</section>
+<section id="fixtures-and-conftest-py">
+<h3>Fixtures and conftest.py<a class="headerlink" href="#fixtures-and-conftest-py" title="Link to this heading">#</a></h3>
+<p>Fixtures create generic objects that can be reused by multiple tests. For example, when testing the <code class="docutils literal notranslate"><span class="pre">Directory</span></code> class’s reports, we have a fixture to:</p>
+<ol class="arabic simple">
+<li><p>create the <code class="docutils literal notranslate"><span class="pre">Directory</span></code> object</p></li>
+<li><p>create the report with the given input into a temporary CSV path that will be removed</p></li>
+<li><p>read the CSV into a <code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> object</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span> <span class="nf">mk_get_rm_dir</span><span class="p">(</span><span class="n">filters</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">top_n</span><span class="p">,</span> <span class="n">use_abs_path</span><span class="p">,</span> <span class="n">tmp_path_factory</span><span class="p">):</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tmp_path_factory</span><span class="o">.</span><span class="n">mktemp</span><span class="p">(</span><span class="s2">&quot;outputs&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;test_output.csv&quot;</span><span class="p">)</span>
+    <span class="n">dir1</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="s1">&#39;tests/resources/similarity_test_files&#39;</span><span class="p">)</span>
+    <span class="n">dir1</span><span class="o">.</span><span class="n">identify_duplicates</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">top_n</span><span class="p">,</span> <span class="n">use_abs_path</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="n">data</span>
+</pre></div>
+</div>
+<p>Fixtures are defined in unit tests as a function parameter, and can be directly called to access the data or object in the fixture’s return value. In the case of the <code class="docutils literal notranslate"><span class="pre">mk_get_rm_dir</span></code> fixture above, the unit test would have access to the DataFrame based on the inputs it provided in the function parameters.</p>
+<p><code class="docutils literal notranslate"><span class="pre">conftest.py</span></code> can be used to reduce redundance when fixtures are re-used across several test files. Any fixtures defined in <code class="docutils literal notranslate"><span class="pre">conftest.py</span></code> are accessible to all test files without having to import them. We use this to define <code class="docutils literal notranslate"><span class="pre">File</span></code> objects on copies of the original test file (which prevents modification of their metadata).</p>
+<br> 
+</section>
+<section id="parametrization">
+<h3>Parametrization<a class="headerlink" href="#parametrization" title="Link to this heading">#</a></h3>
+<p>To further reduce redundancy, parametrization allows test functions to iteratively test a list of inputs and expected outputs. First a list of variable names and values are defined as constants, and then the test function is parametrized with the specific variable names:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">variable_names</span> <span class="o">=</span> <span class="s2">&quot;path, bitrate, length, artist, date, title, organization&quot;</span>
+<span class="n">values</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;tests/resources/test_files/sample_speech.aiff&quot;</span><span class="p">,</span> <span class="mi">256000</span><span class="p">,</span> <span class="mf">3.18</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;tests/resources/test_files/sample_speech.flac&quot;</span><span class="p">,</span> <span class="mi">109089</span><span class="p">,</span> <span class="mf">14.92</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;tests/resources/test_files/sample_speech.mp3&quot;</span><span class="p">,</span> <span class="mi">24000</span><span class="p">,</span> <span class="mf">15.012</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;tests/resources/test_files/sample_speech.mp4&quot;</span><span class="p">,</span> <span class="mi">58503</span><span class="p">,</span> <span class="mf">14.804</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;tests/resources/test_files/sample_speech.ogg&quot;</span><span class="p">,</span> <span class="mi">48000</span><span class="p">,</span> <span class="mf">14.97</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;tests/resources/test_files/sample_speech.wav&quot;</span><span class="p">,</span> <span class="mi">256000</span><span class="p">,</span> <span class="mf">14.92</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="o">...</span>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="n">variable_names</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_audio_metadata</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">bitrate</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">artist</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">organization</span><span class="p">):</span>
+    <span class="c1"># Do something</span>
+</pre></div>
+</div>
+<br>
+</section>
+<section id="test-mocks">
+<h3>Test Mocks<a class="headerlink" href="#test-mocks" title="Link to this heading">#</a></h3>
+<p>Test mocks enable us to force a function to output a certain value. This is generally used when it is impossible or undesirable to test the actual functionality. For example, mocks would be ideal for code that involves calls to an expensive API. In this case, we would want to mock the API so it is not called, and in doing so, the code would effectively test whether the API is called, rather than if the return value is accurate.</p>
+<p>We write test mocks using the built-in <code class="docutils literal notranslate"><span class="pre">unittest.mock</span></code> library. There are various approaches to test mocks, but we use <code class="docutils literal notranslate"><span class="pre">patch</span></code> to mock methods belonging to both external libraries and our own library. Below are 3 examples adapted from the <code class="docutils literal notranslate"><span class="pre">file_processing_library</span></code>:</p>
+<div class="tab-set docutils">
+<input checked="True" class="tab-input" id="tab-set--0-input--1" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--1">Tesseract (OCR)</label><div class="tab-content docutils">
+<p>This is a mock of the external <code class="docutils literal notranslate"><span class="pre">pytesseract.image_to_string()</span></code> function. Rather than run the time-consuming OCR, we force the mock to return a certain value and assert the mock is called:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">unittest.mock</span> <span class="kn">import</span> <span class="n">patch</span>
+<span class="kn">from</span> <span class="nn">file_processing</span> <span class="kn">import</span> <span class="n">File</span>
+
+<span class="nd">@patch</span><span class="p">(</span><span class="s1">&#39;pytesseract.image_to_string&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_ocr_processing_success</span><span class="p">(</span><span class="n">mock_tesseract</span><span class="p">):</span>
+    <span class="n">image_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="s1">&#39;tests</span><span class="se">\\</span><span class="s1">resources</span><span class="se">\\</span><span class="s1">test_files</span><span class="se">\\</span><span class="s1">test_ocr_text.jpg&#39;</span><span class="p">)</span>
+    <span class="n">mock_tesseract</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="s1">&#39;Test OCR&#39;</span>
+    <span class="n">file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">use_ocr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;[^A-Za-z0-9!? ]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;ocr_text&#39;</span><span class="p">])</span>
+
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="s1">&#39;Test OCR&#39;</span>
+
+    <span class="n">_</span><span class="p">,</span> <span class="n">file_extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">file_extension</span> <span class="o">!=</span> <span class="s1">&#39;.pdf&#39;</span><span class="p">:</span>
+        <span class="n">mock_tesseract</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+
+<span class="n">test_ocr_processing_success</span><span class="p">()</span>
+
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--0-input--2" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--2">ffmpeg (Transcription)</label><div class="tab-content docutils">
+<p>The transcription library is also an external dependency and is mocked in a similar fashion:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">unittest.mock</span> <span class="kn">import</span> <span class="n">patch</span>
+<span class="kn">from</span> <span class="nn">file_processing</span> <span class="kn">import</span> <span class="n">File</span>
+
+<span class="k">def</span> <span class="nf">test_mock_transcription</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">transcription</span><span class="p">):</span>
+    <span class="n">mocked_value</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">transcription</span><span class="p">,</span>
+        <span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="s1">&#39;en&#39;</span>
+    <span class="p">}</span>
+    <span class="k">with</span> <span class="n">patch</span><span class="p">(</span><span class="s1">&#39;whisper.transcribe&#39;</span><span class="p">,</span> <span class="n">return_value</span><span class="o">=</span><span class="n">mocked_value</span><span class="p">)</span> <span class="k">as</span> <span class="n">mock_transcribe</span><span class="p">:</span>
+        <span class="n">audio_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">use_transcriber</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">mock_transcribe</span><span class="o">.</span><span class="n">assert_called</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">audio_file</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">transcription</span>
+
+<span class="n">test_mock_transcription</span><span class="p">(</span>
+    <span class="n">path</span><span class="o">=</span><span class="s1">&#39;tests/resources/test_files/sample_speech.aiff&#39;</span><span class="p">,</span>
+    <span class="n">transcription</span><span class="o">=</span><span class="s1">&#39;mocked text&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--0-input--3" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--3">File object</label><div class="tab-content docutils">
+<p>Finally, the <code class="docutils literal notranslate"><span class="pre">File</span></code> object is an internal class and the below test is used to check whether access times are retained. This is done by checking whether the mocked object’s <code class="docutils literal notranslate"><span class="pre">open_file</span></code> property is correctly set to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">unittest.mock</span> <span class="kn">import</span> <span class="n">patch</span>
+<span class="kn">from</span> <span class="nn">file_processing</span> <span class="kn">import</span> <span class="n">Directory</span>
+
+<span class="k">def</span> <span class="nf">test_not_opening_files_in_directory</span><span class="p">(</span><span class="n">directory_path</span><span class="p">):</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="s1">&#39;temp.csv&#39;</span>
+    <span class="k">with</span> <span class="n">patch</span><span class="p">(</span><span class="s1">&#39;file_processing.File&#39;</span><span class="p">,</span> <span class="n">autospec</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">mock_file</span><span class="p">:</span>
+        <span class="n">dir1</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="n">directory_path</span><span class="p">)</span>
+        <span class="n">dir1</span><span class="o">.</span><span class="n">generate_report</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">output_path</span><span class="p">),</span> <span class="n">open_files</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">call</span> <span class="ow">in</span> <span class="n">mock_file</span><span class="o">.</span><span class="n">mock_calls</span><span class="p">:</span>
+            <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">call</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">call</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;open_file&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;File was opened when it should not have been&quot;</span>
+
+<span class="n">test_not_opening_files_in_directory</span><span class="p">(</span><span class="s1">&#39;tests/resources/directory_test_files/&#39;</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</div>
+</div>
+<br>
+</section>
+<section id="setup-and-running">
+<h3>Setup and Running<a class="headerlink" href="#setup-and-running" title="Link to this heading">#</a></h3>
+<p>Unit tests can either be run through the IDE’s test runner or from terminal. For running on terminal, use <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">tests/</span></code> (or <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">tests/test_file.py</span></code> to test a specific function). For running on the IDE, navigate to the testing tab on the left, and configure tests like so:</p>
+<div class="tab-set docutils">
+<input checked="True" class="tab-input" id="tab-set--1-input--1" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--1">Setup</label><div class="tab-content docutils">
+<img alt="../_images/test_setup.png" class="align-center" src="../_images/test_setup.png" />
+</div>
+<input class="tab-input" id="tab-set--1-input--2" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--2">Post-setup</label><div class="tab-content docutils">
+<img alt="../_images/test_post_setup.png" class="align-center" src="../_images/test_post_setup.png" />
+</div>
+</div>
+<p>It may take a few moments to finish setup, but afterwards, these tests will automatically refresh when the code is saved, and they can be executed via the run button at the top of the test runner menu. This runner provides a user-friendly way to run specific tests and see which tests pass or fail.</p>
+<br>
+</section>
+<section id="test-coverage">
+<h3>Test Coverage<a class="headerlink" href="#test-coverage" title="Link to this heading">#</a></h3>
+<p>Test coverage can be roughly estimated via the <code class="docutils literal notranslate"><span class="pre">pytest-cov</span></code> extension that must be separately installed. Run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pytest-cov</span></code> then <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">--cov=file_processing</span> <span class="pre">--cov-report=html</span> <span class="pre">tests/</span></code> to generate an HTML report in the project’s root directory. Note that this runs all unit tests so it may take a while to execute.</p>
+<div class="tab-set docutils">
+<input checked="True" class="tab-input" id="tab-set--2-input--1" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--1">Coverage report</label><div class="tab-content docutils">
+<p>An example is shown below for the <code class="docutils literal notranslate"><span class="pre">directory_report_test</span></code></p>
+<img alt="../_images/test_coverage.png" class="align-center" src="../_images/test_coverage.png" />
+</div>
+<input class="tab-input" id="tab-set--2-input--2" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--2">Coverage details</label><div class="tab-content docutils">
+<p>It also specifies exactly what part of the original <code class="docutils literal notranslate"><span class="pre">Directory</span></code> class is lacking tests</p>
+<img alt="../_images/test_coverage_details.png" class="align-center" src="../_images/test_coverage_details.png" />
+</div>
+</div>
+<br>
+</section>
+<section id="debugging">
+<h3>Debugging<a class="headerlink" href="#debugging" title="Link to this heading">#</a></h3>
+<p>Unit tests must first be ‘discovered’ (ie detected) so the runner can begin execution. This is the step where errors are detected. Hover over the error indicator on the 2nd line to reveal the error message:</p>
+<img alt="../_images/test_discovery_error.png" class="align-center" src="../_images/test_discovery_error.png" />
+<p>Alternatively, run <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">--collect-only</span> <span class="pre">-q</span></code> to try to collect the tests. Any errors will appear in the terminal.</p>
+<br>
+</section>
+</section>
+<section id="file-unit-tests">
+<h2>File Unit Tests<a class="headerlink" href="#file-unit-tests" title="Link to this heading">#</a></h2>
+<p>These are the test files named <code class="docutils literal notranslate"><span class="pre">test_[extension]_processor.py</span></code> and they all share a similar structure with similar tests:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">test_metadata</span></code>: Tests if all the file-specific metadata fields are present</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_save_metadata</span></code>: Tests if the <code class="docutils literal notranslate"><span class="pre">.save()</span></code> method works</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_invalid_save_location</span></code>: Tests if the correct error is thrown upon trying to save in an invalid location</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_not_opening_file</span></code>: A mock test to see if the file is opened when <code class="docutils literal notranslate"><span class="pre">open_file=False</span></code></p></li>
+</ul>
+<p>Each test file also has its own resources that it uses to create <code class="docutils literal notranslate"><span class="pre">File</span></code> objects with. These are located in the <code class="docutils literal notranslate"><span class="pre">tests/resources/test_files</span></code> directory. There should be at least 2 distinct resource files per test to ensure a reasonable test coverage.</p>
+<br>
+</section>
+<section id="directory-unit-tests">
+<h2>Directory Unit Tests<a class="headerlink" href="#directory-unit-tests" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Directory</span></code> tests encompass 3 files - one for each report (metadata, analytics, similarity). Each of them uses a similar <code class="docutils literal notranslate"><span class="pre">mk_get_rm_dir</span></code> fixture that (1) initializes the <code class="docutils literal notranslate"><span class="pre">Directory</span></code> object, (2) creates the specified report in a temporary location, and (3) reads and returns the CSV report as a <code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> object.</p>
+<p>This <code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> object is read and tested by each test function. In general, there is a 1-to-1 match between <code class="docutils literal notranslate"><span class="pre">Directory</span></code> report parameters and test functions. For example, there are <code class="docutils literal notranslate"><span class="pre">keywords</span></code>, <code class="docutils literal notranslate"><span class="pre">filters</span></code>, and <code class="docutils literal notranslate"><span class="pre">migration_filters</span></code> tests.</p>
+<p>Note that unit tests typically receive some hardcoded input and are checked against some hardcoded, expected output, but the <code class="docutils literal notranslate"><span class="pre">Directory</span></code> unit tests only receive the inputs. The outputs are separately computed. This is due to the variability and large amount of data contained in each report that makes it infeasile to hardcode the outputs.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="4_devops.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">CI/CD</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="2_architecture.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Architecture and Design Patterns</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, hc-sc-ocdo-bdpd
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Unit Tests</a><ul>
+<li><a class="reference internal" href="#unit-testing-overview">Unit Testing Overview</a><ul>
+<li><a class="reference internal" href="#design">Design</a></li>
+<li><a class="reference internal" href="#fixtures-and-conftest-py">Fixtures and conftest.py</a></li>
+<li><a class="reference internal" href="#parametrization">Parametrization</a></li>
+<li><a class="reference internal" href="#test-mocks">Test Mocks</a></li>
+<li><a class="reference internal" href="#setup-and-running">Setup and Running</a></li>
+<li><a class="reference internal" href="#test-coverage">Test Coverage</a></li>
+<li><a class="reference internal" href="#debugging">Debugging</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#file-unit-tests">File Unit Tests</a></li>
+<li><a class="reference internal" href="#directory-unit-tests">Directory Unit Tests</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/tabs.js?v=3ee01567"></script>
+    </body>
+</html>
