@@ -13,7 +13,8 @@ ENV FORCE_CMAKE=1
 WORKDIR /workspace
 
 # Install Python and various dependencies needed for both environments
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && \
+    apt-get install -y \
     python3-pip \
     python3-dev \
     build-essential \
@@ -23,29 +24,27 @@ RUN apt-get update && apt-get install -y \
     gfortran \
     git \
     ffmpeg \
-    tesseract-ocr \
-    && rm -rf /var/lib/apt/lists/*
-
-# Update pip and install wheel, setuptools
-RUN python3 -m pip install --upgrade pip wheel setuptools
+    tesseract-ocr && \
+    rm -rf /var/lib/apt/lists/* && \
+    python3 -m pip install --upgrade pip wheel setuptools
 
 # Install file_processing with options based on build args
 ARG DEV=false
 ARG FULL=false
 COPY dist/file_processing-0.0.0-py3-none-any.whl .
 RUN if [ "${DEV}" = "true" ] && [ "${FULL}" = "true" ]; then \
-        pip install file_processing-0.0.0-py3-none-any.whl[developer,full]; \
+        pip install file_processing-0.0.0-py3-none-any.whl[developer,full] --no-cache-dir; \
     elif [ "${DEV}" = "true" ]; then \
-        pip install file_processing-0.0.0-py3-none-any.whl[developer]; \
+        pip install file_processing-0.0.0-py3-none-any.whl[developer] --no-cache-dir; \
     elif [ "${FULL}" = "true" ]; then \
-        pip install file_processing-0.0.0-py3-none-any.whl[full]; \
+        pip install file_processing-0.0.0-py3-none-any.whl[full] --no-cache-dir; \
     else \
-        pip install file_processing-0.0.0-py3-none-any.whl; \
+        pip install file_processing-0.0.0-py3-none-any.whl --no-cache-dir; \
     fi
 
 # Install requirements
 COPY requirements.txt .
-RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install -r requirements.txt --no-cache-dir
 
 # Special installation for llama-cpp-python with GPU support
 RUN pip install llama-cpp-python==0.2.55 --no-cache-dir --force-reinstall --verbose
