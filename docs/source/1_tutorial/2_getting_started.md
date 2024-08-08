@@ -2,7 +2,7 @@
 
 # Getting started
 
-The file processing library offers 2 imports, `File` and `Directory`, that are used to process files and directories, respectively.
+The file processing library offers 3 imports, `File`, `Directory`, and `SearchDirectory`, that are used to process files and directories, respectively, while `SearchDirectory` provides functionality to perform a semantic search of text-based files in a directory.
 
 <br>
 
@@ -169,3 +169,17 @@ See more details and examples [here](../2_user_guide/3_directory_similarity.md)
 <br>
 
 For an end-to-end example on usage, see the [JupyTer notebook tutorial](https://github.com/hc-sc-ocdo-bdpd/file-processing-tools/blob/main/report_demo.ipynb)
+
+## SearchDirectory
+
+This import is to construct a searchable database of text-based files that can be queried to extract the documents with the most similar semantic meaning to the query.
+
+```py
+from file_processing import SearchDirectory
+
+search = SearchDirectory("path/to/save/files")
+```
+
+<br>
+
+For an end-to-end example on usage, see the [JupyTer notebook tutorial](https://github.com/hc-sc-ocdo-bdpd/file-processing-tools/blob/main/search_directory_demo.ipynb)

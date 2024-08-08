@@ -53,7 +53,7 @@ including OCR for image files and transcription for audio/video files. There are
 
 #. | **Comparing 2 document-based files via cosine similarity and Levenshtein distance**
 
-#. | **Searching a directory using FAISS indexes**
+#. | **Searching a directory using semantic embeddings and FAISS indexes**
 
 |
 

@@ -1,16 +1,21 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-dockerfile
 {
     "name": "My Container",
     "build": {
         "context": "..",
-        "dockerfile": "../Dockerfile"
+        "dockerfile": "../Dockerfile",
+        "args": {
+            "DEV": "false",
+            "FULL": "false"
+        }
     },
+    "runArgs": [
+        "--gpus", "all"
+    ],
     "forwardPorts": [8888],
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-python.python", 
+                "ms-python.python",
                 "ms-toolsai.jupyter"
             ]
         }

@@ -78,6 +78,8 @@ target/
 .ipynb_checkpoints
 corrupted_file_report.csv
 faiss_development.ipynb
+docs/sample_search_docs/*
+!docs/sample_search_docs
 
 # IPython
 profile_default/
