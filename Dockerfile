@@ -29,11 +29,10 @@ RUN apt-get update && apt-get install -y \
 # Update pip and install wheel, setuptools
 RUN python3 -m pip install --upgrade pip wheel setuptools
 
-COPY dist/file_processing-0.0.0-py3-none-any.whl .
-
 # Install file_processing with options based on build args
 ARG DEV=false
 ARG FULL=false
+COPY dist/file_processing-0.0.0-py3-none-any.whl .
 RUN if [ "${DEV}" = "true" ] && [ "${FULL}" = "true" ]; then \
         pip install file_processing-0.0.0-py3-none-any.whl[developer,full]; \
     elif [ "${DEV}" = "true" ]; then \
@@ -50,6 +49,11 @@ RUN python3 -m pip install -r requirements.txt
 
 # Special installation for llama-cpp-python with GPU support
 RUN pip install llama-cpp-python==0.2.55 --no-cache-dir --force-reinstall --verbose
+
+# Clean up to reduce the image size
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /root/.cache/pip
 
 # Expose Jupyter port
 EXPOSE 8888
