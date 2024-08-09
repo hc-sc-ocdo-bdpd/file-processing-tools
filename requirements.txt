@@ -11,3 +11,5 @@ pandas>=2.0.3
 tqdm==4.66.1
 mutagen==1.47.0
 numpy<2
+ipywidgets==8.1.1
+ipykernel==6.29.5
