@@ -1,7 +1,10 @@
 import ast
 import shutil
+import logging
 from file_processing.errors import FileProcessingFailedError
 from file_processing.file_processor_strategy import FileProcessorStrategy
+
+logger = logging.getLogger(__name__)
 
 class PyFileProcessor(FileProcessorStrategy):
     """
@@ -25,7 +28,11 @@ class PyFileProcessor(FileProcessorStrategy):
             metadata (dict): Populated with a message if `open_file` is False, otherwise initialized with default values.
         """
         super().__init__(file_path, open_file)
-        self.metadata = {'message': 'File was not opened'} if not open_file else self._default_metadata()
+        if not open_file:
+            logger.debug(f"PY file '{self.file_path}' was not opened (open_file=False).")
+            self.metadata = {'message': 'File was not opened'}
+        else:
+            self.metadata = self._default_metadata()
 
     def _default_metadata(self) -> dict:
         """
@@ -52,6 +59,8 @@ class PyFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs during Python file processing.
         """
+        logger.info(f"Starting processing of PY file '{self.file_path}'.")
+
         if not self.open_file:
             return
 
@@ -60,9 +69,12 @@ class PyFileProcessor(FileProcessorStrategy):
                 content = f.read()
                 self.metadata['num_lines'] = len(content.splitlines())
                 self.metadata['text'] = content
+                logger.debug(f"Detected {self.metadata['num_lines']} lines in PY file '{self.file_path}'.")
                 ast_tree = ast.parse(content)
                 self._extract_metadata(ast_tree)
+            logger.info(f"Successfully processed PY file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process PY file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -97,11 +109,14 @@ class PyFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the Python file.
         """
-        if output_path is None:
-            output_path = self.file_path
+        save_path = output_path or self.file_path
+        logger.info(f"Saving PY file '{self.file_path}' to '{save_path}'.")
+
         try:
-            shutil.copy2(self.file_path, output_path)
+            shutil.copy2(self.file_path, save_path)
+            logger.info(f"PY file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save PY file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
-                f"Error encountered while saving to {output_path}: {e}"
+                f"Error encountered while saving to {save_path}: {e}"
             )

@@ -1,8 +1,11 @@
 import json
 from json.decoder import JSONDecodeError
 import chardet
+import logging
 from file_processing.file_processor_strategy import FileProcessorStrategy
 from file_processing.errors import FileProcessingFailedError, FileCorruptionError
+
+logger = logging.getLogger(__name__)
 
 class JsonFileProcessor(FileProcessorStrategy):
     """
@@ -27,6 +30,8 @@ class JsonFileProcessor(FileProcessorStrategy):
         """
         super().__init__(file_path, open_file)
         self.metadata = {'message': 'File was not opened'} if not open_file else {}
+        if not open_file:
+            logger.debug(f"JSON file '{self.file_path}' was not opened (open_file=False).")
 
     def process(self) -> None:
         """
@@ -40,15 +45,15 @@ class JsonFileProcessor(FileProcessorStrategy):
         if not self.open_file:
             return
 
+        logger.info(f"Starting processing of JSON file '{self.file_path}'.")
         try:
-            # Read binary content and detect encoding
             with open(self.file_path, 'rb') as f:
                 binary_content = f.read()
 
             encoding = chardet.detect(binary_content)['encoding']
-            content = binary_content.decode(encoding)
+            logger.debug(f"Detected encoding '{encoding}' for JSON file '{self.file_path}'.")
 
-            # Parse JSON data and gather metadata
+            content = binary_content.decode(encoding)
             data = json.loads(content)
             text = json.dumps(data)
             num_keys = self.count_keys(data)
@@ -62,23 +67,18 @@ class JsonFileProcessor(FileProcessorStrategy):
                 'key_names': key_names,
                 'empty_values': empty_values,
             })
+
+            logger.info(f"Successfully processed JSON file '{self.file_path}'.")
         except JSONDecodeError as e:
+            logger.error(f"Failed to process JSON file '{self.file_path}': {e}")
             raise FileCorruptionError(f"File is corrupted: {self.file_path}") from e
         except Exception as e:
+            logger.error(f"Failed to process JSON file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
 
     def count_empty_values(self, data: dict) -> int:
-        """
-        Recursively counts the number of empty values in a JSON structure.
-
-        Args:
-            data (dict): Parsed JSON data as a dictionary.
-
-        Returns:
-            int: Count of empty values in the JSON data.
-        """
         empty_values = 0
         for key in data.keys():
             if data[key] == '':
@@ -88,15 +88,6 @@ class JsonFileProcessor(FileProcessorStrategy):
         return empty_values
 
     def count_keys(self, data: dict) -> int:
-        """
-        Recursively counts the total number of keys in a JSON structure.
-
-        Args:
-            data (dict): Parsed JSON data as a dictionary.
-
-        Returns:
-            int: Total number of keys in the JSON data.
-        """
         num_keys = len(data.keys())
         for key in data.keys():
             if isinstance(data[key], dict):
@@ -104,15 +95,6 @@ class JsonFileProcessor(FileProcessorStrategy):
         return num_keys
 
     def get_key_names(self, data: dict) -> list:
-        """
-        Recursively gathers all key names in a JSON structure.
-
-        Args:
-            data (dict): Parsed JSON data as a dictionary.
-
-        Returns:
-            list: List of all key names in the JSON data.
-        """
         key_names = []
         for key in data.keys():
             key_names.append(key)
@@ -131,10 +113,13 @@ class JsonFileProcessor(FileProcessorStrategy):
             FileProcessingFailedError: If an error occurs while saving the JSON file.
         """
         save_path = output_path or self.file_path
+        logger.info(f"Saving JSON file '{self.file_path}' to '{save_path}'.")
         try:
             with open(save_path, 'w', encoding=self.metadata['encoding']) as f:
                 json.dump(json.loads(self.metadata['text']), f, indent=4)
+            logger.info(f"JSON file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save JSON file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving file {self.file_path} to {save_path}: {e}"
             )

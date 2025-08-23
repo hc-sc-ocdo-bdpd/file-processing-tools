@@ -1,10 +1,12 @@
 import re
 import zipfile
 import shutil
-from pathlib import Path
+import logging
 from typing import Union, List
 from file_processing.errors import FileProcessingFailedError
 from file_processing.file_processor_strategy import FileProcessorStrategy
+
+logger = logging.getLogger(__name__)
 
 class WhlFileProcessor(FileProcessorStrategy):
     """
@@ -31,6 +33,8 @@ class WhlFileProcessor(FileProcessorStrategy):
         """
         super().__init__(file_path, open_file)
         self.metadata = {'message': 'File was not opened'} if not open_file else self._default_metadata()
+        if not open_file:
+            logger.debug(f"WHL file '{self.file_path}' was not opened (open_file=False).")
 
     def _default_metadata(self) -> dict:
         """
@@ -61,8 +65,10 @@ class WhlFileProcessor(FileProcessorStrategy):
             FileProcessingFailedError: If the METADATA file is not found or if an error occurs while processing.
         """
         if not self.open_file:
+            logger.debug(f"WHL file '{self.file_path}' was not opened (open_file=False).")
             return
-        
+
+        logger.info(f"Starting processing of WHL file '{self.file_path}'.")
         try:
             with zipfile.ZipFile(self.file_path, 'r') as whl_file:
                 metadata_file = None
@@ -70,14 +76,17 @@ class WhlFileProcessor(FileProcessorStrategy):
                     if name.endswith('.dist-info/METADATA'):
                         metadata_file = name
                         break
-                
+
                 if metadata_file:
                     with whl_file.open(metadata_file) as meta:
                         metadata_content = meta.read().decode('utf-8')
+                        logger.debug(f"Read METADATA content from WHL file '{self.file_path}'.")
                         self._extract_metadata(metadata_content)
                 else:
                     raise FileProcessingFailedError(f"METADATA file not found in {self.file_path}")
+            logger.info(f"Successfully processed WHL file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process WHL file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -111,7 +120,7 @@ class WhlFileProcessor(FileProcessorStrategy):
         match = re.search(r"^Author: (.+)$", content, re.MULTILINE)
         if match:
             return match.group(1).strip()
-    
+
         match = re.search(r"^Author-Email: ([^<]+)", content, re.MULTILINE)
         if match:
             return match.group(1).strip().split("<")[0].strip()
@@ -195,10 +204,13 @@ class WhlFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the .whl file.
         """
+        save_path = output_path or str(self.file_path)
+        logger.info(f"Saving WHL file '{self.file_path}' to '{save_path}'.")
         try:
-            output_path = output_path or str(self.file_path)
-            shutil.copy2(self.file_path, output_path)
+            shutil.copy2(self.file_path, save_path)
+            logger.info(f"WHL file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save WHL file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving {self.file_path}: {e}"
             )

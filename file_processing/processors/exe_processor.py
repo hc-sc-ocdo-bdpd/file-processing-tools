@@ -1,8 +1,10 @@
 import pefile
-from pathlib import Path
 import shutil
 from file_processing.errors import FileProcessingFailedError
 from file_processing.file_processor_strategy import FileProcessorStrategy
+
+import logging
+logger = logging.getLogger(__name__)
 
 class ExeFileProcessor(FileProcessorStrategy):
     """
@@ -35,7 +37,10 @@ class ExeFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs during .exe file processing.
         """
+        logger.info(f"Starting processing of EXE file '{self.file_path}'.")
+
         if not self.open_file:
+            logger.debug(f"EXE file '{self.file_path}' was not opened (open_file=False).")
             return
 
         try:
@@ -47,7 +52,10 @@ class ExeFileProcessor(FileProcessorStrategy):
                 "imports": self.extract_imports(pe),
                 "sections": self.extract_sections(pe),
             })
+            logger.debug(f"Extracted entry point, machine type, section count for EXE file '{self.file_path}'.")
+            logger.info(f"Successfully processed EXE file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process EXE file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -73,7 +81,9 @@ class ExeFileProcessor(FileProcessorStrategy):
                     dll_name = entry.dll.decode('utf-8')
                     functions = [imp.name.decode('utf-8') for imp in entry.imports if imp.name]
                     imports[dll_name] = functions
+                logger.debug(f"Extracted imports: {list(imports.keys())}")
         except Exception as e:
+            logger.error(f"Failed to extract imports from EXE file: {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while extracting imports: {e}"
             )
@@ -96,13 +106,16 @@ class ExeFileProcessor(FileProcessorStrategy):
         sections = []
         try:
             for section in pe.sections:
-                sections.append({
+                section_info = {
                     'name': section.Name.decode('utf-8').strip(),
                     'virtual_address': hex(section.VirtualAddress),
                     'size_of_raw_data': section.SizeOfRawData,
                     'entropy': section.get_entropy(),
-                })
+                }
+                sections.append(section_info)
+            logger.debug(f"Extracted {len(sections)} sections from EXE file.")
         except Exception as e:
+            logger.error(f"Failed to extract sections from EXE file: {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while extracting sections: {e}"
             )
@@ -118,10 +131,14 @@ class ExeFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the .exe file.
         """
+        save_path = output_path or str(self.file_path)
+        logger.info(f"Saving EXE file '{self.file_path}' to '{save_path}'.")
+
         try:
-            output_path = output_path or str(self.file_path)
-            shutil.copy2(self.file_path, output_path)
+            shutil.copy2(self.file_path, save_path)
+            logger.info(f"EXE file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save EXE file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving {self.file_path}: {e}"
             )

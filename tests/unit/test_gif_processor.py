@@ -3,6 +3,7 @@ import shutil
 from pathlib import Path
 from unittest.mock import patch
 import pytest
+import logging
 from file_processing import File
 from file_processing.errors import FileProcessingFailedError
 from file_processing_test_data import get_test_files_path
@@ -17,7 +18,8 @@ values = [
 
 
 @pytest.mark.parametrize(variable_names, values)
-def test_gif_metadata(path, original_format, mode, width, height, animated, frames):
+def test_gif_metadata(path, original_format, mode, width, height, animated, frames, caplog):
+    caplog.set_level(logging.DEBUG)
     file_obj = File(path)
     assert file_obj.metadata['original_format'] == original_format
     assert file_obj.metadata['mode'] == mode
@@ -26,30 +28,50 @@ def test_gif_metadata(path, original_format, mode, width, height, animated, fram
     assert bool(file_obj.metadata['animated']) == animated
     assert file_obj.metadata['frames'] == frames
 
+    assert f"Starting processing of GIF file '{file_obj.path}'." in caplog.text
+    assert f"Successfully processed GIF file '{file_obj.path}'." in caplog.text
+
 
 @pytest.mark.parametrize(variable_names, values)
-def test_save_gif_metadata(copy_file, original_format, mode, width, height, animated, frames):
-    test_gif_metadata(copy_file, original_format, mode, width, height, animated, frames)
+def test_save_gif_metadata(copy_file, original_format, mode, width, height, animated, frames, caplog):
+    caplog.set_level(logging.DEBUG)
+    test_gif_metadata(copy_file, original_format, mode, width, height, animated, frames, caplog)
+
+    file_obj = File(copy_file)
+    save_path = copy_file
+    file_obj.processor.save(str(save_path))
+
+    assert f"Saving GIF file '{file_obj.path}' to '{save_path}'." in caplog.text
+    assert f"GIF file '{file_obj.path}' saved successfully to '{save_path}'." in caplog.text
 
 
 @pytest.mark.parametrize("path", map(lambda x: x[0], values))
-def test_gif_invalid_save_location(path):
+def test_gif_invalid_save_location(path, caplog):
+    caplog.set_level(logging.DEBUG)
     gif_file = File(path)
     invalid_save_path = '/non_existent_folder/' + os.path.basename(path)
     with pytest.raises(FileProcessingFailedError):
         gif_file.processor.save(invalid_save_path)
 
+    assert any(
+        record.levelname == "ERROR" and "Failed to save GIF file" in record.message
+        for record in caplog.records
+    )
+
 
 @pytest.mark.parametrize("path", map(lambda x: x[0], values))
-def test_not_opening_file(path):
+def test_not_opening_file(path, caplog):
+    caplog.set_level(logging.DEBUG)
     with patch('builtins.open', autospec=True) as mock_open:
-        File(path, open_file=False)
+        file_obj = File(path, open_file=False)
         mock_open.assert_not_called()
+        assert f"GIF file '{file_obj.path}' was not opened (open_file=False)." in caplog.text
 
 
 @pytest.mark.parametrize("path", [v[0] for v in values])
 @pytest.mark.parametrize("algorithm", ["md5", "sha256"])
-def test_gif_copy_with_integrity(path, algorithm, tmp_path):
+def test_gif_copy_with_integrity(path, algorithm, tmp_path, caplog):
+    caplog.set_level(logging.DEBUG)
     file_obj = File(path, open_file=False)
     original_hash = file_obj.processor.compute_hash(algorithm)
 
@@ -58,6 +80,9 @@ def test_gif_copy_with_integrity(path, algorithm, tmp_path):
 
     copied = File(str(dest_path))
     assert copied.processor.compute_hash(algorithm) == original_hash
+    # ✅ Check copy logging from File.copy()
+    assert f"Copying file from '{file_obj.file_path}' to '{dest_path}' with integrity verification=True." in caplog.text
+    assert f"Integrity verification passed for '{dest_path}'." in caplog.text
 
 
 @pytest.mark.parametrize("path", [v[0] for v in values])

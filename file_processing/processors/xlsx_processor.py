@@ -1,8 +1,11 @@
 from io import BytesIO
 from openpyxl import load_workbook
 import msoffcrypto
+import logging
 from file_processing.errors import FileProcessingFailedError, FileCorruptionError
 from file_processing.file_processor_strategy import FileProcessorStrategy
+
+logger = logging.getLogger(__name__)
 
 class XlsxFileProcessor(FileProcessorStrategy):
     """
@@ -55,7 +58,10 @@ class XlsxFileProcessor(FileProcessorStrategy):
             FileProcessingFailedError: If an error occurs during Excel file processing.
         """
         if not self.open_file:
+            logger.debug(f"XLSX file '{self.file_path}' was not opened (open_file=False).")
             return
+
+        logger.info(f"Starting processing of XLSX file '{self.file_path}'.")
 
         with open(self.file_path, 'rb') as f:
             file_content = BytesIO(f.read())
@@ -66,10 +72,12 @@ class XlsxFileProcessor(FileProcessorStrategy):
                 self.metadata["has_password"] = True
                 return
         except Exception as e:
+            logger.error(f"Failed to process XLSX file '{self.file_path}': {e}")
             raise FileCorruptionError(f"File is corrupted: {self.file_path}") from e
 
         try:
             file_content.seek(0)  # Reset the position to the start
+            logger.debug(f"Loading workbook for XLSX file '{self.file_path}'.")
             exceldoc = load_workbook(self.file_path)
             self.metadata.update({
                 "active_sheet": exceldoc.active.title,
@@ -78,7 +86,9 @@ class XlsxFileProcessor(FileProcessorStrategy):
                 "last_modified_by": exceldoc.properties.lastModifiedBy,
                 "creator": exceldoc.properties.creator
             })
+            logger.info(f"Successfully processed XLSX file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process XLSX file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -93,17 +103,18 @@ class XlsxFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the .xlsx file.
         """
+        save_path = output_path or self.file_path
+        logger.info(f"Saving XLSX file '{self.file_path}' to '{save_path}'.")
+
         try:
             exceldoc = load_workbook(self.file_path)
             cp = exceldoc.properties
             cp.creator = self.metadata.get('creator', cp.creator)
-            cp.last_modified_by = self.metadata.get(
-                'last_modified_by', cp.lastModifiedBy
-            )
-
-            save_path = output_path or self.file_path
+            cp.last_modified_by = self.metadata.get('last_modified_by', cp.lastModifiedBy)
             exceldoc.save(save_path)
+            logger.info(f"XLSX file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save XLSX file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving {self.file_path}: {e}"
             )

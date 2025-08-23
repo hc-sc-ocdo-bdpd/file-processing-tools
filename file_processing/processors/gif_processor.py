@@ -1,6 +1,9 @@
 from PIL import Image
 from file_processing.file_processor_strategy import FileProcessorStrategy
 from file_processing.errors import FileProcessingFailedError
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GifFileProcessor(FileProcessorStrategy):
     """
@@ -23,7 +26,11 @@ class GifFileProcessor(FileProcessorStrategy):
             metadata (dict): Populated with a message if `open_file` is False.
         """
         super().__init__(file_path, open_file)
-        self.metadata = {'message': 'File was not opened'} if not open_file else {}
+        if not open_file:
+            self.metadata = {'message': 'File was not opened'}
+            logger.debug(f"GIF file '{self.file_path}' was not opened (open_file=False).")
+        else:
+            self.metadata = {}
 
     def process(self) -> None:
         """
@@ -32,21 +39,26 @@ class GifFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while processing the GIF file.
         """
+        logger.info(f"Starting processing of GIF file '{self.file_path}'.")
         if not self.open_file:
+            logger.debug(f"GIF file '{self.file_path}' was not opened (open_file=False).")
             return
 
         try:
             image = Image.open(self.file_path)
             image.load()
+            logger.debug(f"Loaded image for GIF file '{self.file_path}'.")
             self.metadata.update({
                 'original_format': image.format,
-                'mode': image.mode,  # Mode defines type and width of a pixel
+                'mode': image.mode,
                 'width': image.width,
                 'height': image.height,
                 'animated': image.is_animated,
                 'frames': image.n_frames
             })
+            logger.info(f"Successfully processed GIF file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process GIF file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -61,11 +73,14 @@ class GifFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the GIF file.
         """
+        save_path = output_path or self.file_path
+        logger.info(f"Saving GIF file '{self.file_path}' to '{save_path}'.")
         try:
             image = Image.open(self.file_path)
-            save_path = output_path or self.file_path
             image.save(save_path, save_all=True)
+            logger.info(f"GIF file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save GIF file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving to {save_path}: {e}"
             )

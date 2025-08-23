@@ -1,5 +1,6 @@
 import os
 import shutil
+import logging
 import pytest
 from unittest.mock import patch
 from datetime import datetime
@@ -17,7 +18,8 @@ values = [
 ]
 
 @pytest.mark.parametrize(variable_names, values)
-def test_msg_metadata(path, text_length, subject, date, sender):
+def test_msg_metadata(path, text_length, subject, date, sender, caplog):
+    caplog.set_level(logging.DEBUG)
     file_obj = File(path)
 
     if isinstance(file_obj.metadata['date'], str):
@@ -34,34 +36,54 @@ def test_msg_metadata(path, text_length, subject, date, sender):
     assert 'thread' in file_obj.metadata
     assert isinstance(file_obj.metadata['thread'], dict)
 
+    assert f"Starting processing of MSG file '{file_obj.path}'." in caplog.text
+    assert f"Successfully processed MSG file '{file_obj.path}'." in caplog.text
+
 @pytest.mark.parametrize(variable_names, values)
-def test_save_msg_metadata(copy_file, text_length, subject, date, sender):
-    test_msg_metadata(copy_file, text_length, subject, date, sender)
+def test_save_msg_metadata(copy_file, text_length, subject, date, sender, caplog):
+    caplog.set_level(logging.DEBUG)
+    test_msg_metadata(copy_file, text_length, subject, date, sender, caplog)
+    file_obj = File(copy_file)
+    file_obj.save()
+    assert f"Saving MSG file '{file_obj.path}' to '{file_obj.path}'." in caplog.text
+    assert f"MSG file '{file_obj.path}' saved successfully to '{file_obj.path}'." in caplog.text
 
 @pytest.mark.parametrize("path", map(lambda x: x[0], values))
-def test_msg_invalid_save_location(path):
+def test_msg_invalid_save_location(path, caplog):
+    caplog.set_level(logging.DEBUG)
     msg_file = File(path)
     invalid_save_path = '/non_existent_folder/' + os.path.basename(path)
     with pytest.raises(FileProcessingFailedError):
         msg_file.processor.save(invalid_save_path)
+    assert any(
+        record.levelname == "ERROR" and "Failed to save MSG file" in record.message
+        for record in caplog.records
+    )
 
 @pytest.mark.parametrize("path", map(lambda x: x[0], values))
-def test_msg_open_file_false(path):
+def test_msg_open_file_false(path, caplog):
+    caplog.set_level(logging.DEBUG)
     with patch('builtins.open', autospec=True) as mock_open:
-        File(path, open_file=False)
+        file_obj = File(path, open_file=False)
         mock_open.assert_not_called()
+        assert f"MSG file '{file_obj.path}' was not opened (open_file=False)." in caplog.text
 
-@pytest.mark.parametrize("path", map(lambda x: x[0], values))
+@pytest.mark.parametrize("file_name", [v[0] for v in values])
 @pytest.mark.parametrize("algorithm", ["md5", "sha256"])
-def test_msg_copy_with_integrity(path, algorithm, tmp_path):
-    file_obj = File(path, open_file=False)
-    expected_hash = file_obj.processor.compute_hash(algorithm)
+def test_msg_copy_with_integrity(file_name, algorithm, tmp_path, caplog):
+    caplog.set_level(logging.DEBUG)
+    path = test_files_path / file_name
+    file_obj = File(str(path), open_file=False)
+    original_hash = file_obj.processor.compute_hash(algorithm)
 
-    dest_path = tmp_path / Path(path).name
-    file_obj.copy(dest_path, verify_integrity=True)
+    dest_path = tmp_path / Path(file_name).name  # ✅ use just the name
+    file_obj.copy(str(dest_path), verify_integrity=True)
 
-    copied = File(dest_path)
-    assert copied.processor.compute_hash(algorithm) == expected_hash
+    copied = File(str(dest_path))
+    assert copied.processor.compute_hash(algorithm) == original_hash
+
+    assert f"Copying file from '{file_obj.file_path}' to '{dest_path}' with integrity verification=True." in caplog.text
+    assert f"Integrity verification passed for '{dest_path}'." in caplog.text
 
 @pytest.mark.parametrize("path", map(lambda x: x[0], values))
 def test_msg_copy_integrity_failure(path, tmp_path, monkeypatch):

@@ -1,9 +1,9 @@
 import chardet
+import logging
 from file_processing.file_processor_strategy import FileProcessorStrategy
 from file_processing.errors import FileProcessingFailedError
 
-# Beautiful Soup is commonly used for parsing HTML/XML data:
-# https://beautiful-soup-4.readthedocs.io/en/latest/
+logger = logging.getLogger(__name__)
 
 class HtmlFileProcessor(FileProcessorStrategy):
     """
@@ -28,6 +28,8 @@ class HtmlFileProcessor(FileProcessorStrategy):
         """
         super().__init__(file_path, open_file)
         self.metadata = {'message': 'File was not opened'} if not open_file else {}
+        if not open_file:
+            logger.debug(f"HTML file '{self.file_path}' was not opened (open_file=False).")
 
     def process(self) -> None:
         """
@@ -40,15 +42,15 @@ class HtmlFileProcessor(FileProcessorStrategy):
         if not self.open_file:
             return
 
+        logger.info(f"Starting processing of HTML file '{self.file_path}'.")
         try:
-            # Detect file encoding for accurate text processing
             encoding = chardet.detect(open(self.file_path, "rb").read())['encoding']
+            logger.debug(f"Detected encoding '{encoding}' for HTML file '{self.file_path}'.")
             with open(self.file_path, 'r', encoding=encoding) as f:
                 text = f.read()
                 lines = text.split('\n')
                 words = text.split()
 
-            # Populate metadata with extracted content and counts
             self.metadata.update({
                 'text': text,
                 'encoding': encoding,
@@ -57,7 +59,9 @@ class HtmlFileProcessor(FileProcessorStrategy):
                 'num_lines': len(lines),
                 'num_words': len(words),
             })
+            logger.info(f"Successfully processed HTML file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process HTML file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing: {e}"
             )
@@ -72,12 +76,14 @@ class HtmlFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the HTML file.
         """
+        save_path = output_path or self.file_path
+        logger.info(f"Saving HTML file '{self.file_path}' to '{save_path}'.")
         try:
-            # Retrieve encoding from metadata, default to 'utf-8' if unspecified
-            save_path = output_path or self.file_path
             with open(save_path, 'w', encoding=self.metadata.get('encoding', 'utf-8')) as f:
                 f.write(self.metadata['text'])
+            logger.info(f"HTML file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save HTML file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving: {e}"
             )

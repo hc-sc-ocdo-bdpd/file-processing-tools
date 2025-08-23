@@ -1,6 +1,9 @@
 import chardet
 from file_processing.errors import FileProcessingFailedError
 from file_processing.file_processor_strategy import FileProcessorStrategy
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GitignoreFileProcessor(FileProcessorStrategy):
     """
@@ -24,7 +27,11 @@ class GitignoreFileProcessor(FileProcessorStrategy):
             metadata (dict): Populated with a message if `open_file` is False.
         """
         super().__init__(file_path, open_file)
-        self.metadata = {'message': 'File was not opened'} if not open_file else {}
+        if not open_file:
+            self.metadata = {'message': 'File was not opened'}
+            logger.debug(f"Gitignore file '{self.file_path}' was not opened (open_file=False).")
+        else:
+            self.metadata = {}
 
     def process(self) -> None:
         """
@@ -35,13 +42,16 @@ class GitignoreFileProcessor(FileProcessorStrategy):
             FileProcessingFailedError: If an error occurs during .gitignore file processing.
             UnicodeDecodeError: If there is a decoding error when reading the file.
         """
+        logger.info(f"Starting processing of Gitignore file '{self.file_path}'.")
         if not self.open_file:
+            logger.debug(f"Gitignore file '{self.file_path}' was not opened (open_file=False).")
             return
 
         try:
             with open(self.file_path, "rb") as f:
                 encoding = chardet.detect(f.read())['encoding']
-                
+                logger.debug(f"Detected encoding '{encoding}' for Gitignore file '{self.file_path}'.")
+
             with open(self.file_path, 'r', encoding=encoding) as f:
                 text = f.read()
                 lines = text.split('\n')
@@ -55,11 +65,14 @@ class GitignoreFileProcessor(FileProcessorStrategy):
                 'num_lines': len(lines),
                 'num_words': len(words),
             })
+            logger.info(f"Successfully processed Gitignore file '{self.file_path}'.")
         except UnicodeDecodeError as ude:
+            logger.error(f"Failed to process Gitignore file '{self.file_path}': {ude}")
             raise FileProcessingFailedError(
                 f"Unicode decoding error encountered while processing {self.file_path}: {ude}"
             )
         except Exception as e:
+            logger.error(f"Failed to process Gitignore file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -74,12 +87,15 @@ class GitignoreFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the .gitignore file.
         """
+        save_path = output_path or self.file_path
+        logger.info(f"Saving Gitignore file '{self.file_path}' to '{save_path}'.")
         try:
-            encoding = self.metadata.get('encoding', 'utf-8')  # Default to 'utf-8'
-            save_path = output_path or self.file_path
+            encoding = self.metadata.get('encoding', 'utf-8')
             with open(save_path, 'w', encoding=encoding) as f:
                 f.write(self.metadata['text'])
+            logger.info(f"Gitignore file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save Gitignore file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving {self.file_path}: {e}"
             )

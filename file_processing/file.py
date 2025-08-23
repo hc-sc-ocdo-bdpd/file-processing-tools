@@ -9,7 +9,9 @@ from file_processing.errors import (
     OptionalDependencyNotInstalledError
 )
 import shutil
+import logging
 
+logger = logging.getLogger(__name__)  
 
 class File:
     """
@@ -164,17 +166,25 @@ class File:
             output_path (str): Destination path (defaults to original file path).
             verify_integrity (bool): If True, re-compute and compare hash after copy.
         """
-        original_hash = self.hash if verify_integrity else None
-        src = self.processor.file_path
-        shutil.copy2(str(src), str(output_path))
-
-        if verify_integrity:
-            copied = File(str(output_path), open_file=False)
-            if original_hash != copied.hash:
-                raise FileProcessingFailedError(
-                    f"Integrity check failed on copy: {output_path} hash changed "
-                    f"({original_hash} → {copied.hash})"
-                )
+        logger.info(f"Copying file from '{self.file_path}' to '{output_path}' with integrity verification={verify_integrity}.")  
+  
+        original_hash = self.hash if verify_integrity else None  
+        src = self.processor.file_path  
+        shutil.copy2(str(src), str(output_path))  
+    
+        if verify_integrity:  
+            copied = File(str(output_path), open_file=False)  
+            copied_hash = copied.hash  
+            logger.info(f"Original SHA256 hash: {original_hash}")  
+            logger.info(f"Copied file SHA256 hash: {copied_hash}")  
+            if original_hash != copied_hash:  
+                logger.error(f"Integrity check failed for '{output_path}': original hash '{original_hash}' does not match copied hash '{copied_hash}'.")  
+                raise FileProcessingFailedError(  
+                    f"Integrity check failed on copy: {output_path} hash changed "  
+                    f"({original_hash} → {copied_hash})"  
+                )  
+            else:  
+                logger.info(f"Integrity verification passed for '{output_path}'.")
 
     def process(self) -> None:
         """

@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 import shutil
 import pytest
@@ -13,12 +14,10 @@ unsupported_files = [
     test_files_path / 'unsupported_file_2.abcd'
 ]
 
-
 @pytest.mark.parametrize("file_path", unsupported_files)
 def test_processor_is_generic(file_path):
     file_obj = File(file_path)
     assert isinstance(file_obj.processor, GenericFileProcessor)
-
 
 @pytest.mark.parametrize("file_path", unsupported_files)
 def test_metadata_has_message(file_path):
@@ -27,7 +26,6 @@ def test_metadata_has_message(file_path):
     assert file_obj.processor.metadata['message'] == (
         "This is a generic processor. Limited functionality available. File was not opened"
     )
-
 
 @pytest.mark.parametrize("file_path", unsupported_files)
 def test_file_attributes(file_path):
@@ -46,7 +44,6 @@ def test_file_attributes(file_path):
     assert processor.is_symlink == Path(file_path).is_symlink()
     assert processor.absolute_path == Path(file_path).resolve()
 
-
 @pytest.mark.parametrize("file_path", unsupported_files)
 @pytest.mark.parametrize("algorithm", ["md5", "sha256"])
 def test_generic_copy_with_integrity(file_path, algorithm, tmp_path):
@@ -59,7 +56,6 @@ def test_generic_copy_with_integrity(file_path, algorithm, tmp_path):
     copied = File(str(dest_path))
     assert copied.processor.compute_hash(algorithm) == original_hash
     assert copied.metadata == file_obj.metadata
-
 
 @pytest.mark.parametrize("file_path", unsupported_files)
 def test_generic_copy_integrity_failure(file_path, tmp_path, monkeypatch):
@@ -74,3 +70,38 @@ def test_generic_copy_integrity_failure(file_path, tmp_path, monkeypatch):
     with pytest.raises(FileProcessingFailedError) as excinfo:
         file_obj.copy(str(tmp_path / Path(file_path).name), verify_integrity=True)
     assert "Integrity check failed" in str(excinfo.value)
+
+@pytest.mark.parametrize("file_path", unsupported_files)
+def test_generic_process_logs(file_path, caplog):
+    caplog.set_level(logging.DEBUG)
+    file_obj = File(file_path)
+    file_obj.processor.process()
+    assert f"Processing skipped for unsupported file type '{file_path}' using GenericFileProcessor." in caplog.text
+
+@pytest.mark.parametrize("file_path", unsupported_files)
+def test_generic_save_with_output_path(file_path, tmp_path, caplog):
+    caplog.set_level(logging.DEBUG)
+    file_obj = File(file_path)
+    output_path = tmp_path / Path(file_path).name
+    file_obj.save(str(output_path))
+    assert f"Saving generic file '{file_path}' to '{output_path}'." in caplog.text
+    assert f"Generic file '{file_path}' saved successfully to '{output_path}'." in caplog.text
+
+@pytest.mark.parametrize("file_path", unsupported_files)
+def test_generic_save_without_output_path(file_path, caplog):
+    caplog.set_level(logging.DEBUG)
+    file_obj = File(file_path)
+    file_obj.save()
+    assert f"No output path provided, generic file '{file_path}' was not saved." in caplog.text
+
+@pytest.mark.parametrize("file_path", unsupported_files)
+def test_generic_save_failure(file_path, caplog):
+    caplog.set_level(logging.DEBUG)
+    file_obj = File(file_path)
+    invalid_path = "/this/does/not/exist/invalid.xyz"
+    with pytest.raises(FileProcessingFailedError):
+        file_obj.save(invalid_path)
+    assert any(
+        record.levelname == "ERROR" and "Failed to save generic file" in record.message
+        for record in caplog.records
+    )

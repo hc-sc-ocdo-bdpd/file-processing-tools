@@ -3,7 +3,6 @@ import shutil
 import pytest
 from file_processing import File
 from file_processing.errors import FileProcessingFailedError
-from file_processing_test_data import get_test_files_path
 
 # Shared fixture to create a temporary directory structure with specified files from file-processing-test-data
 @pytest.fixture()

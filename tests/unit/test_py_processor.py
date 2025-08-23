@@ -1,3 +1,4 @@
+import logging
 from unittest.mock import patch
 import shutil
 import pytest
@@ -16,7 +17,8 @@ values = [
 ]
 
 @pytest.mark.parametrize(variable_names, values)
-def test_python_metadata(path, num_lines, num_functions, num_classes, num_imports, num_docstrings, text_length):
+def test_python_metadata(path, num_lines, num_functions, num_classes, num_imports, num_docstrings, text_length, caplog):
+    caplog.set_level(logging.DEBUG)
     file_obj = File(path)
     assert file_obj.metadata['num_lines'] == num_lines
     assert file_obj.metadata['num_functions'] == num_functions
@@ -24,38 +26,60 @@ def test_python_metadata(path, num_lines, num_functions, num_classes, num_import
     assert len(file_obj.metadata['imports']) == num_imports
     assert len(file_obj.metadata['docstrings']) == num_docstrings
     assert len(file_obj.metadata['text']) == text_length
+    assert f"Starting processing of PY file '{file_obj.path}'." in caplog.text
+    assert f"Successfully processed PY file '{file_obj.path}'." in caplog.text
 
 @pytest.mark.parametrize(variable_names, values)
-def test_not_opening_file(path, num_lines, num_functions, num_classes, num_imports, num_docstrings, text_length):
+def test_not_opening_file(path, num_lines, num_functions, num_classes, num_imports, num_docstrings, text_length, caplog):
+    caplog.set_level(logging.DEBUG)
     with patch('builtins.open', autospec=True) as mock_open:
-        File(path, open_file=False)
+        file_obj = File(path, open_file=False)
         mock_open.assert_not_called()
+        assert f"PY file '{file_obj.path}' was not opened (open_file=False)." in caplog.text
 
 @pytest.mark.parametrize(variable_names, values)
-def test_save_python_metadata(copy_file, num_lines, num_functions, num_classes, num_imports, num_docstrings, text_length):
-    test_python_metadata(copy_file, num_lines, num_functions, num_classes, num_imports, num_docstrings, text_length)
+def test_save_python_metadata(copy_file, num_lines, num_functions, num_classes, num_imports, num_docstrings, text_length, caplog, tmp_path):
+    caplog.set_level(logging.DEBUG)
+    file_obj = File(copy_file)
+
+    save_path = tmp_path / "saved_backend.py"
+    file_obj.save(save_path)
+
+    assert f"Saving PY file '{file_obj.path}' to '{save_path}'." in caplog.text
+    assert f"PY file '{file_obj.path}' saved successfully to '{save_path}'." in caplog.text
+
 
 invalid_save_locations_python = [
     (test_files_path / 'backend.py', '/non_existent_folder/backend.py')
 ]
 
 @pytest.mark.parametrize("path, save_path", invalid_save_locations_python)
-def test_py_invalid_save_location(path, save_path):
+def test_py_invalid_save_location(path, save_path, caplog):
+    caplog.set_level(logging.DEBUG)
     file_obj = File(path)
     with pytest.raises(FileProcessingFailedError):
         file_obj.save(save_path)
+    assert any(
+        record.levelname == "ERROR" and "Failed to save PY file" in record.message
+        for record in caplog.records
+    )
 
-@pytest.mark.parametrize("path", map(lambda x: x[0], values))
+@pytest.mark.parametrize("file_name", [v[0] for v in values])
 @pytest.mark.parametrize("algorithm", ["md5", "sha256"])
-def test_py_copy_with_integrity(path, algorithm, tmp_path):
-    file_obj = File(path, open_file=False)
-    expected_hash = file_obj.processor.compute_hash(algorithm)
+def test_py_copy_with_integrity(file_name, algorithm, tmp_path, caplog):
+    caplog.set_level(logging.DEBUG)
+    path = test_files_path / file_name
+    file_obj = File(str(path), open_file=False)
+    original_hash = file_obj.processor.compute_hash(algorithm)
 
-    dest_path = tmp_path / Path(path).name
-    file_obj.copy(dest_path, verify_integrity=True)
+    dest_path = tmp_path / Path(file_name).name  # ✅ use just the name
+    file_obj.copy(str(dest_path), verify_integrity=True)
 
-    copied = File(dest_path)
-    assert copied.processor.compute_hash(algorithm) == expected_hash
+    copied = File(str(dest_path))
+    assert copied.processor.compute_hash(algorithm) == original_hash
+
+    assert f"Copying file from '{file_obj.file_path}' to '{dest_path}' with integrity verification=True." in caplog.text
+    assert f"Integrity verification passed for '{dest_path}'." in caplog.text
 
 @pytest.mark.parametrize("path", map(lambda x: x[0], values))
 def test_py_copy_integrity_failure(path, tmp_path, monkeypatch):

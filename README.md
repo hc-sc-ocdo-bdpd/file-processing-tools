@@ -136,6 +136,17 @@ To add support for a new file type:
 
 Following these steps ensures your new processor is correctly integrated with the `file-processing` library.
 
+---
+
+## Logging  
+  
+The `file-processing` library uses Python's built-in `logging` module. By default, it does not configure logging to avoid interfering with your application's logging setup.   
+  
+To enable our recommended logging configuration, explicitly call:  
+  
+```python  
+from file_processing.logging_setup import setup_logging  
+setup_logging()  
 
 ---
 

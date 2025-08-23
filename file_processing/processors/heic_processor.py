@@ -1,7 +1,10 @@
 from PIL import Image
 from pillow_heif import register_heif_opener
+import logging
 from file_processing.file_processor_strategy import FileProcessorStrategy
 from file_processing.errors import FileProcessingFailedError
+
+logger = logging.getLogger(__name__)
 
 register_heif_opener()  # Supports .heic, .heics, .heif, .heifs, .hif
 
@@ -27,6 +30,8 @@ class HeicFileProcessor(FileProcessorStrategy):
         """
         super().__init__(file_path, open_file)
         self.metadata = {'message': 'File was not opened'} if not open_file else {}
+        if not open_file:
+            logger.debug(f"HEIC file '{self.file_path}' was not opened (open_file=False).")
 
     def process(self) -> None:
         """
@@ -38,16 +43,19 @@ class HeicFileProcessor(FileProcessorStrategy):
         if not self.open_file:
             return
 
+        logger.info(f"Starting processing of HEIC file '{self.file_path}'.")
         try:
             image = Image.open(self.file_path)
             image.load()
             self.metadata.update({
                 'original_format': image.format,
-                'mode': image.mode,  # Mode defines type and width of a pixel
+                'mode': image.mode,
                 'width': image.width,
                 'height': image.height,
             })
+            logger.info(f"Successfully processed HEIC file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process HEIC file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -62,12 +70,14 @@ class HeicFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the HEIC file.
         """
+        save_path = output_path or self.file_path
+        logger.info(f"Saving HEIC file '{self.file_path}' to '{save_path}'.")
         try:
             image = Image.open(self.file_path)
-
-            save_path = output_path or self.file_path
             image.save(save_path)
+            logger.info(f"HEIC file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save HEIC file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving to {save_path}: {e}"
             )

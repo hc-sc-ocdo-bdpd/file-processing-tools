@@ -4,6 +4,9 @@ from docx import Document
 from file_processing.errors import FileProcessingFailedError, FileCorruptionError
 from file_processing.file_processor_strategy import FileProcessorStrategy
 
+import logging
+logger = logging.getLogger(__name__)
+
 class DocxFileProcessor(FileProcessorStrategy):
     """
     Processor for handling .docx files, extracting metadata and saving modifications.
@@ -50,7 +53,10 @@ class DocxFileProcessor(FileProcessorStrategy):
             FileCorruptionError: If the file is corrupted.
             FileProcessingFailedError: If an error occurs during file processing.
         """
+        logger.info(f"Starting processing of DOCX file '{self.file_path}'.")
+
         if not self.open_file:
+            logger.debug(f"DOCX file '{self.file_path}' was not opened (open_file=False).")
             return
 
         with open(self.file_path, 'rb') as f:
@@ -60,8 +66,10 @@ class DocxFileProcessor(FileProcessorStrategy):
             office_file = msoffcrypto.OfficeFile(file_content)
             if office_file.is_encrypted():
                 self.metadata["has_password"] = True
+                logger.debug(f"DOCX file '{self.file_path}' is encrypted; skipping text extraction.")
                 return
         except Exception as e:
+            logger.error(f"Failed to process DOCX file '{self.file_path}': {e}")
             raise FileCorruptionError(f"File is corrupted: {self.file_path}") from e
 
         try:
@@ -70,7 +78,10 @@ class DocxFileProcessor(FileProcessorStrategy):
             self.metadata.update({'text': self.extract_text_from_docx(doc)})
             self.metadata.update({'author': doc.core_properties.author})
             self.metadata.update({'last_modified_by': doc.core_properties.last_modified_by})
+            logger.debug(f"Extracted metadata from '{self.file_path}': Author='{doc.core_properties.author}', LastModifiedBy='{doc.core_properties.last_modified_by}'")
+            logger.info(f"Successfully processed DOCX file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process DOCX file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -85,6 +96,9 @@ class DocxFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the .docx file.
         """
+        save_path = output_path or self.file_path
+        logger.info(f"Saving DOCX file '{self.file_path}' to '{save_path}'.")
+
         try:
             doc = Document(self.file_path)
 
@@ -93,9 +107,10 @@ class DocxFileProcessor(FileProcessorStrategy):
             cp.author = self.metadata.get('author', cp.author)
             cp.last_modified_by = self.metadata.get('last_modified_by', cp.last_modified_by)
 
-            save_path = output_path or self.file_path
             doc.save(save_path)
+            logger.info(f"DOCX file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save DOCX file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving to {save_path}: {e}"
             )
@@ -117,6 +132,7 @@ class DocxFileProcessor(FileProcessorStrategy):
             full_text = [para.text for para in doc.paragraphs]
             return '\n'.join(full_text)
         except Exception as e:
+            logger.error(f"Failed to extract text from DOCX file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while opening or processing {self.file_path}: {e}"
             )

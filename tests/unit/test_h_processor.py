@@ -1,6 +1,5 @@
-import os
 import shutil
-from pathlib import Path
+import logging
 import pytest
 from unittest.mock import patch
 from file_processing.file import File
@@ -9,7 +8,6 @@ from file_processing_test_data import get_test_files_path
 
 test_files_path = get_test_files_path()
 
-# (file_name, encoding, num_lines, num_includes, num_macros, num_structs, num_classes, num_comments)
 values = [
     ('internal.h', 'ascii', 202, 5, 6, 4, 0, 23),
     ('rtp_av1.h', 'ascii', 132, 2, 19, 0, 0, 13),
@@ -22,10 +20,13 @@ values = [
     values
 )
 def test_h_metadata_extraction(file_name, encoding, num_lines, num_includes,
-                               num_macros, num_structs, num_classes, num_comments):
-    """Tests .h file processing metadata extraction."""
+                               num_macros, num_structs, num_classes, num_comments, caplog):
+    caplog.set_level(logging.DEBUG)
     h_file_path = test_files_path / file_name
     h_file = File(str(h_file_path))
+
+    assert f"Starting processing of H file '{h_file.path}'." in caplog.text
+    assert f"Successfully processed H file '{h_file.path}'." in caplog.text
 
     metadata = h_file.processor.metadata
     assert metadata['encoding'] == encoding
@@ -37,26 +38,32 @@ def test_h_metadata_extraction(file_name, encoding, num_lines, num_includes,
     assert metadata['num_comments'] == num_comments
 
 @pytest.mark.parametrize("file_name", [entry[0] for entry in values])
-def test_h_invalid_save_location(file_name):
-    """Tests that saving to an invalid location raises an error."""
+def test_h_invalid_save_location(file_name, caplog):
+    caplog.set_level(logging.DEBUG)
     h_file_path = test_files_path / file_name
     h_file = File(str(h_file_path))
     invalid_save_path = '/non_existent_folder/' + file_name
     with pytest.raises(FileProcessingFailedError):
         h_file.save(invalid_save_path)
 
+    assert any(
+        record.levelname == "ERROR" and "Failed to save H file" in record.message
+        for record in caplog.records
+    )
+
 @pytest.mark.parametrize("file_name", [entry[0] for entry in values])
-def test_h_processor_open_file_false(file_name):
-    """Tests that the file is not opened when open_file=False."""
+def test_h_processor_open_file_false(file_name, caplog):
+    caplog.set_level(logging.DEBUG)
     h_file_path = test_files_path / file_name
     with patch("builtins.open") as mock_open:
-        File(str(h_file_path), open_file=False)
+        file_obj = File(str(h_file_path), open_file=False)
         mock_open.assert_not_called()
+        assert f"H file '{file_obj.path}' was not opened (open_file=False)." in caplog.text
 
 @pytest.mark.parametrize("file_name", [v[0] for v in values])
 @pytest.mark.parametrize("algorithm", ["md5", "sha256"])
-def test_h_copy_with_integrity(file_name, algorithm, tmp_path):
-    """Tests that copied .h file maintains integrity (hash match)."""
+def test_h_copy_with_integrity(file_name, algorithm, tmp_path, caplog):
+    caplog.set_level(logging.DEBUG)
     path = test_files_path / file_name
     file_obj = File(str(path), open_file=False)
     original_hash = file_obj.processor.compute_hash(algorithm)
@@ -67,10 +74,12 @@ def test_h_copy_with_integrity(file_name, algorithm, tmp_path):
     copied = File(str(dest_path))
     assert copied.processor.compute_hash(algorithm) == original_hash
 
+    # ✅ Check copy logging from File.copy()
+    assert f"Copying file from '{file_obj.file_path}' to '{dest_path}' with integrity verification=True." in caplog.text
+    assert f"Integrity verification passed for '{dest_path}'." in caplog.text
 
 @pytest.mark.parametrize("file_name", [v[0] for v in values])
 def test_h_copy_integrity_failure(file_name, tmp_path, monkeypatch):
-    """Tests that a corrupted .h copy raises integrity failure."""
     path = test_files_path / file_name
     file_obj = File(str(path), open_file=False)
 

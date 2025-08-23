@@ -1,5 +1,6 @@
 import os
 import shutil
+import logging
 from pathlib import Path
 from unittest.mock import patch
 import pytest
@@ -15,39 +16,49 @@ values = [
     (test_files_path / 'MapleLeaf.heif', 'HEIF', 'RGB', 1600, 1200)
 ]
 
-
 @pytest.mark.parametrize(variable_names, values)
-def test_heic_metadata(path, original_format, mode, width, height):
+def test_heic_metadata(path, original_format, mode, width, height, caplog):
+    caplog.set_level(logging.DEBUG)
     file_obj = File(path)
+
+    assert f"Starting processing of HEIC file '{file_obj.path}'." in caplog.text
+    assert f"Successfully processed HEIC file '{file_obj.path}'." in caplog.text
+
     assert file_obj.metadata['original_format'] == original_format
     assert file_obj.metadata['mode'] == mode
     assert file_obj.metadata['width'] == width
     assert file_obj.metadata['height'] == height
 
-
 @pytest.mark.parametrize(variable_names, values)
-def test_save_heic_metadata(copy_file, original_format, mode, width, height):
-    test_heic_metadata(copy_file, original_format, mode, width, height)
-
+def test_save_heic_metadata(copy_file, original_format, mode, width, height, caplog):
+    caplog.set_level(logging.DEBUG)
+    test_heic_metadata(copy_file, original_format, mode, width, height, caplog)
 
 @pytest.mark.parametrize("path", map(lambda x: x[0], values))
-def test_heic_invalid_save_location(path):
+def test_heic_invalid_save_location(path, caplog):
+    caplog.set_level(logging.DEBUG)
     heic_file = File(path)
     invalid_save_path = '/non_existent_folder/' + os.path.basename(path)
     with pytest.raises(FileProcessingFailedError):
         heic_file.processor.save(invalid_save_path)
 
+    assert any(
+        record.levelname == "ERROR" and "Failed to save HEIC file" in record.message
+        for record in caplog.records
+    )
 
 @pytest.mark.parametrize("path", map(lambda x: x[0], values))
-def test_not_opening_file(path):
+def test_not_opening_file(path, caplog):
+    caplog.set_level(logging.DEBUG)
     with patch('builtins.open', autospec=True) as mock_open:
-        File(path, open_file=False)
+        file_obj = File(path, open_file=False)
         mock_open.assert_not_called()
-
+        assert f"HEIC file '{file_obj.path}' was not opened (open_file=False)." in caplog.text
 
 @pytest.mark.parametrize("path", [v[0] for v in values])
 @pytest.mark.parametrize("algorithm", ["md5", "sha256"])
-def test_heic_copy_with_integrity(path, algorithm, tmp_path):
+def test_heic_copy_with_integrity(path, algorithm, tmp_path, caplog):
+    caplog.set_level(logging.DEBUG)
     file_obj = File(path, open_file=False)
     original_hash = file_obj.processor.compute_hash(algorithm)
 
@@ -57,6 +68,9 @@ def test_heic_copy_with_integrity(path, algorithm, tmp_path):
     copied = File(str(dest_path))
     assert copied.processor.compute_hash(algorithm) == original_hash
 
+    # ✅ Check copy logging from File.copy()
+    assert f"Copying file from '{file_obj.file_path}' to '{dest_path}' with integrity verification=True." in caplog.text
+    assert f"Integrity verification passed for '{dest_path}'." in caplog.text
 
 @pytest.mark.parametrize("path", [v[0] for v in values])
 def test_heic_copy_integrity_failure(path, tmp_path, monkeypatch):

@@ -1,6 +1,10 @@
 import chardet
+import logging
+import re
 from file_processing.errors import FileProcessingFailedError
 from file_processing.file_processor_strategy import FileProcessorStrategy
+
+logger = logging.getLogger(__name__)
 
 class JavaFileProcessor(FileProcessorStrategy):
     """
@@ -24,6 +28,8 @@ class JavaFileProcessor(FileProcessorStrategy):
         """
         super().__init__(file_path, open_file)
         self.metadata = {'message': 'File was not opened'} if not open_file else {}
+        if not open_file:
+            logger.debug(f"Java file '{self.file_path}' was not opened (open_file=False).")
 
     def process(self) -> None:
         """
@@ -35,11 +41,13 @@ class JavaFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs during Java file processing.
         """
+        logger.info(f"Starting processing of Java file '{self.file_path}'.")
         if not self.open_file:
             return
         try:
             raw_data = open(self.file_path, 'rb').read()
             encoding = chardet.detect(raw_data)['encoding']
+            logger.debug(f"Detected encoding '{encoding}' for Java file '{self.file_path}'.")
 
             with open(self.file_path, 'r', encoding=encoding) as f:
                 text = f.read()
@@ -47,8 +55,6 @@ class JavaFileProcessor(FileProcessorStrategy):
                 num_lines = len(text.splitlines())
                 num_characters = len(text)
 
-                # Simple method/class counting using regex patterns
-                import re
                 method_pattern = re.compile(r'\b(public|private|protected|static|\s)+\s+\w+\s+\w+\s*\([^\)]*\)\s*\{', re.MULTILINE)
                 class_pattern = re.compile(r'\b(class|interface|enum)\s+\w+', re.MULTILINE)
 
@@ -63,7 +69,10 @@ class JavaFileProcessor(FileProcessorStrategy):
                     'num_methods': num_methods,
                     'num_classes': num_classes,
                 })
+
+            logger.info(f"Successfully processed Java file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process Java file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -78,11 +87,14 @@ class JavaFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the Java file.
         """
+        save_path = output_path or self.file_path
+        logger.info(f"Saving Java file '{self.file_path}' to '{save_path}'.")
         try:
-            save_path = output_path or self.file_path
             with open(save_path, 'w', encoding=self.metadata['encoding']) as f:
                 f.write(self.metadata['text'])
+            logger.info(f"Java file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save Java file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving file {self.file_path} to {save_path}: {e}"
             )

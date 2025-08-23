@@ -1,6 +1,9 @@
 from PIL import Image
+import logging
 from file_processing.file_processor_strategy import FileProcessorStrategy
 from file_processing.errors import FileProcessingFailedError
+
+logger = logging.getLogger(__name__)
 
 class JpegFileProcessor(FileProcessorStrategy):
     """
@@ -25,6 +28,8 @@ class JpegFileProcessor(FileProcessorStrategy):
         """
         super().__init__(file_path, open_file)
         self.metadata = {'message': 'File was not opened'} if not open_file else {}
+        if not open_file:
+            logger.debug(f"JPEG file '{self.file_path}' was not opened (open_file=False).")
 
     def process(self) -> None:
         """
@@ -33,20 +38,22 @@ class JpegFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while processing the JPEG file.
         """
+        logger.info(f"Starting processing of JPEG file '{self.file_path}'.")
         if not self.open_file:
             return
 
         try:
             image = Image.open(self.file_path)
             image.load()
-            # Populate metadata with extracted image properties
             self.metadata.update({
                 'original_format': image.format,
-                'mode': image.mode,  # Mode defines pixel type and width
+                'mode': image.mode,
                 'width': image.width,
                 'height': image.height,
             })
+            logger.info(f"Successfully processed JPEG file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process JPEG file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing: {e}"
             )
@@ -61,11 +68,14 @@ class JpegFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the JPEG file.
         """
+        save_path = output_path or self.file_path
+        logger.info(f"Saving JPEG file '{self.file_path}' to '{save_path}'.")
         try:
             image = Image.open(self.file_path)
-            save_path = output_path or self.file_path
             image.save(save_path)
+            logger.info(f"JPEG file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save JPEG file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing: {e}"
             )

@@ -2,6 +2,9 @@ from pathlib import Path
 from file_processing.file_processor_strategy import FileProcessorStrategy
 from file_processing.errors import FileProcessingFailedError
 
+import logging
+logger = logging.getLogger(__name__)
+
 class DirectoryProcessor(FileProcessorStrategy):
     """
     Processor for handling directories, gathering metadata and saving information about
@@ -24,10 +27,11 @@ class DirectoryProcessor(FileProcessorStrategy):
         """
         super().__init__(dir_path, open_file)
 
-        # Ensure that this path is a directory
         if not self.file_path.is_dir():
+            logger.error(f"Path is not a directory: {dir_path}")
             raise FileProcessingFailedError(f"Path is not a directory: {dir_path}")
 
+        logger.info(f"Initializing directory processor for path '{self.file_path}'.")
         self.metadata = self._gather_basic_metadata()
 
     def _gather_basic_metadata(self) -> dict:
@@ -37,10 +41,17 @@ class DirectoryProcessor(FileProcessorStrategy):
         Returns:
             dict: Metadata with the number of items, total size of files, and directory permissions.
         """
+        num_items = len(list(self.file_path.iterdir()))
+        total_size = self._get_top_level_size()
+        permissions = self._get_permissions()
+
+        logger.debug(f"Gathered metadata for directory '{self.file_path}': "
+                     f"num_items={num_items}, total_size={total_size}, permissions={permissions}")
+
         metadata = {
-            'num_items_in_top_level': len(list(self.file_path.iterdir())),
-            'total_size_of_files_in_top_level': self._get_top_level_size(),
-            'permissions': self._get_permissions(),  # Gather directory permissions
+            'num_items_in_top_level': num_items,
+            'total_size_of_files_in_top_level': total_size,
+            'permissions': permissions,
         }
         return metadata
 
@@ -82,7 +93,7 @@ class DirectoryProcessor(FileProcessorStrategy):
 
     def process(self) -> None:
         """Processes the directory; intended as a placeholder for interface compatibility."""
-        pass
+        logger.info(f"Processing directory '{self.file_path}' (no-op).")
 
     def save(self, output_path: str = None) -> None:
         """
@@ -95,16 +106,20 @@ class DirectoryProcessor(FileProcessorStrategy):
             FileProcessingFailedError: If the output path is not provided, does not exist,
                                        or if an error occurs during saving.
         """
-        if output_path is None:
+        save_path = Path(output_path) if output_path else None
+        if save_path is None:
+            logger.error("Output path not provided for saving directory metadata.")
             raise FileProcessingFailedError("Output path not provided.")
-        
-        output_path = Path(output_path)
-        if not output_path.parent.exists():
-            raise FileProcessingFailedError(f"Save location does not exist: {output_path}")
-        
-        # Logic for saving the directory metadata
+
+        if not save_path.parent.exists():
+            logger.error(f"Save location does not exist: {save_path}")
+            raise FileProcessingFailedError(f"Save location does not exist: {save_path}")
+
+        logger.info(f"Saving directory metadata for '{self.file_path}' to '{save_path}'.")
         try:
-            with open(output_path, 'w') as f:
-                f.write(str(self.metadata))  # Serialize metadata as needed
+            with open(save_path, 'w') as f:
+                f.write(str(self.metadata))
+            logger.info(f"Directory metadata for '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save directory metadata to '{save_path}': {e}")
             raise FileProcessingFailedError(f"Failed to save directory metadata: {e}")

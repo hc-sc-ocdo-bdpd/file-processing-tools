@@ -1,9 +1,8 @@
 import pytest
-import os
 import shutil
+import logging
 from pathlib import Path
 from file_processing import File
-from file_processing.processors.gguf_processor import GgufFileProcessor
 from file_processing.errors import FileProcessingFailedError
 from file_processing_test_data import get_test_files_path
 
@@ -73,38 +72,60 @@ gguf_test_data = [
 ]
 
 @pytest.mark.parametrize("file_path, expected_metadata", gguf_test_data)
-def test_gguf_metadata(file_path, expected_metadata):
+def test_gguf_metadata(file_path, expected_metadata, caplog):
+    caplog.set_level(logging.DEBUG)
+
     file_obj = File(file_path)
 
-    # Check if the processor has the correct metadata attributes and values
     for key, expected_value in expected_metadata.items():
         assert key in file_obj.metadata, f"Missing key: {key}"
         actual_value = file_obj.metadata[key]
         
-        if isinstance(expected_value, int):  # Check length for large lists
+        if isinstance(expected_value, int):
             if isinstance(actual_value, list):
                 assert len(actual_value) == expected_value, f"Length mismatch for key: {key}"
             else:
                 assert actual_value == expected_value, f"Value mismatch for key: {key}"
-        else:  # Check actual value for smaller attributes
+        else:
             assert str(actual_value) == str(expected_value), f"Value mismatch for key: {key}"
+
+    assert f"Starting processing of GGUF file '{file_obj.path}'." in caplog.text
+    assert f"Successfully processed GGUF file '{file_obj.path}'." in caplog.text
 
 
 @pytest.mark.parametrize("file_path", [v[0] for v in gguf_test_data])
 @pytest.mark.parametrize("algorithm", ["md5", "sha256"])
-def test_gguf_copy_with_integrity(file_path, algorithm, tmp_path):
-    file_obj = File(file_path, open_file=False)
+def test_gguf_copy_with_integrity(file_path, algorithm, tmp_path, caplog):
+    caplog.set_level(logging.DEBUG)
+
+    file_obj = File(file_path)  # open_file=True ensures processing happens
+
+    # ✅ Logging from processor
+    assert f"Starting processing of GGUF file '{file_obj.path}'." in caplog.text
+    assert f"Successfully processed GGUF file '{file_obj.path}'." in caplog.text
+
     original_hash = file_obj.processor.compute_hash(algorithm)
 
     dest_path = tmp_path / Path(file_path).name
     file_obj.copy(str(dest_path), verify_integrity=True)
 
+    # ✅ Logging from File.copy
+    assert f"Copying file from '{file_obj.file_path}' to '{dest_path}' with integrity verification=True." in caplog.text
+    assert f"Integrity verification passed for '{dest_path}'." in caplog.text
+
     copied = File(str(dest_path))
+
+    # ✅ Logging from processor for copied file
+    assert f"Starting processing of GGUF file '{copied.path}'." in caplog.text
+    assert f"Successfully processed GGUF file '{copied.path}'." in caplog.text
+
     assert copied.processor.compute_hash(algorithm) == original_hash
 
 
 @pytest.mark.parametrize("file_path", [v[0] for v in gguf_test_data])
-def test_gguf_copy_integrity_failure(file_path, tmp_path, monkeypatch):
+def test_gguf_copy_integrity_failure(file_path, tmp_path, monkeypatch, caplog):
+    caplog.set_level(logging.DEBUG)
+
     file_obj = File(file_path, open_file=False)
 
     def corrupt(src, dest, *, follow_symlinks=True):
@@ -113,6 +134,15 @@ def test_gguf_copy_integrity_failure(file_path, tmp_path, monkeypatch):
 
     monkeypatch.setattr(shutil, "copy2", corrupt)
 
+    dest_path = tmp_path / Path(file_path).name
+
     with pytest.raises(FileProcessingFailedError) as excinfo:
-        file_obj.copy(str(tmp_path / Path(file_path).name), verify_integrity=True)
+        file_obj.copy(str(dest_path), verify_integrity=True)
+
+    # ✅ Log and error assertion
     assert "Integrity check failed" in str(excinfo.value)
+    assert f"Copying file from '{file_obj.file_path}' to '{dest_path}' with integrity verification=True." in caplog.text
+    assert any(
+        record.levelname == "ERROR" and "Integrity check failed" in record.message
+        for record in caplog.records
+    )

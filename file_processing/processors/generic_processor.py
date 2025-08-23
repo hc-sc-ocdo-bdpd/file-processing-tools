@@ -3,6 +3,8 @@ import logging
 from file_processing.errors import FileProcessingFailedError
 from file_processing.file_processor_strategy import FileProcessorStrategy
 
+logger = logging.getLogger(__name__)
+
 class GenericFileProcessor(FileProcessorStrategy):
     """
     Generic processor for handling unsupported or unrecognized file types.
@@ -34,7 +36,7 @@ class GenericFileProcessor(FileProcessorStrategy):
         Process method for unsupported file types. Does nothing as it serves as a placeholder
         for unsupported files, providing only minimal functionality.
         """
-        pass
+        logger.info(f"Processing skipped for unsupported file type '{self.file_path}' using GenericFileProcessor.")
 
     def save(self, output_path: str = None) -> None:
         """
@@ -47,9 +49,12 @@ class GenericFileProcessor(FileProcessorStrategy):
             FileProcessingFailedError: If an error occurs during the file save operation.
         """
         if output_path:
+            logger.info(f"Saving generic file '{self.file_path}' to '{output_path}'.")
             try:
                 shutil.copy2(self.file_path, output_path)
+                logger.info(f"Generic file '{self.file_path}' saved successfully to '{output_path}'.")
             except Exception as e:
+                logger.error(f"Failed to save generic file '{self.file_path}' to '{output_path}': {e}")
                 raise FileProcessingFailedError(f"Error encountered while saving {self.file_path}: {e}")
         else:
-            logging.info("No output path provided, file not saved.")
+            logger.info(f"No output path provided, generic file '{self.file_path}' was not saved.")

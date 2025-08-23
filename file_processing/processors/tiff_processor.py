@@ -2,6 +2,9 @@ from PIL import Image
 from file_processing.errors import FileProcessingFailedError
 from file_processing.file_processor_strategy import FileProcessorStrategy
 
+import logging
+logger = logging.getLogger(__name__)
+
 class TiffFileProcessor(FileProcessorStrategy):
     """
     Processor for handling TIFF (Tagged Image File Format) files, extracting metadata
@@ -25,6 +28,8 @@ class TiffFileProcessor(FileProcessorStrategy):
         """
         super().__init__(file_path, open_file)
         self.metadata = {'message': 'File was not opened'} if not open_file else {}
+        if not open_file:
+            logger.debug(f"TIFF file '{self.file_path}' was not opened (open_file=False).")
 
     def process(self) -> None:
         """
@@ -34,19 +39,22 @@ class TiffFileProcessor(FileProcessorStrategy):
             FileProcessingFailedError: If an error occurs while processing the TIFF file.
         """
         if not self.open_file:
+            logger.debug(f"TIFF file '{self.file_path}' was not opened (open_file=False).")
             return
 
+        logger.info(f"Starting processing of TIFF file '{self.file_path}'.")
         try:
             image = Image.open(self.file_path)
             image.load()
-            # Populate metadata with extracted image properties
             self.metadata.update({
                 'original_format': image.format,
-                'mode': image.mode,  # Mode defines pixel type and width
+                'mode': image.mode,
                 'width': image.width,
                 'height': image.height,
             })
+            logger.info(f"Successfully processed TIFF file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process TIFF file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -61,11 +69,14 @@ class TiffFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the TIFF file.
         """
+        save_path = output_path or self.file_path
+        logger.info(f"Saving TIFF file '{self.file_path}' to '{save_path}'.")
         try:
             image = Image.open(self.file_path)
-            save_path = output_path or self.file_path
             image.save(save_path)
+            logger.info(f"TIFF file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save TIFF file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving to {save_path}: {e}"
             )

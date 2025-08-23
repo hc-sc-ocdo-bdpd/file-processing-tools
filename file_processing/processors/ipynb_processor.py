@@ -1,6 +1,9 @@
 import json
+import logging
 from file_processing.errors import FileProcessingFailedError
 from file_processing.file_processor_strategy import FileProcessorStrategy
+
+logger = logging.getLogger(__name__)
 
 class IpynbFileProcessor(FileProcessorStrategy):
     """
@@ -24,6 +27,8 @@ class IpynbFileProcessor(FileProcessorStrategy):
         """
         super().__init__(file_path, open_file)
         self.metadata = {'message': 'File was not opened'} if not open_file else {}
+        if not open_file:
+            logger.debug(f"IPYNB file '{self.file_path}' was not opened (open_file=False).")
 
     def process(self) -> None:
         """
@@ -35,6 +40,8 @@ class IpynbFileProcessor(FileProcessorStrategy):
         """
         if not self.open_file:
             return
+
+        logger.info(f"Starting processing of IPYNB file '{self.file_path}'.")
         try:
             with open(self.file_path, 'r', encoding='utf-8') as f:
                 notebook = json.load(f)
@@ -43,17 +50,17 @@ class IpynbFileProcessor(FileProcessorStrategy):
             text = []
             for cell in cells:
                 if cell['cell_type'] in ['markdown', 'code']:
-                    # Join cell source content and replace line breaks for readability
                     text.append(' '.join(cell['source']).replace('\n', ' ') + '\n')
 
-            # Populate metadata with extracted text and cell counts
             self.metadata.update({
                 'text': ''.join(text),
                 'num_cells': len(cells),
                 'num_code_cells': sum(1 for cell in cells if cell['cell_type'] == 'code'),
                 'num_markdown_cells': sum(1 for cell in cells if cell['cell_type'] == 'markdown')
             })
+            logger.info(f"Successfully processed IPYNB file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process IPYNB file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -68,12 +75,12 @@ class IpynbFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the .ipynb file.
         """
+        save_path = output_path or self.file_path
+        logger.info(f"Saving IPYNB file '{self.file_path}' to '{save_path}'.")
         try:
-            save_path = output_path or self.file_path
             with open(self.file_path, 'r', encoding='utf-8') as f:
                 notebook = json.load(f)
 
-            # Split extracted text back into cells for saving
             text = self.metadata.get('text', '').split('\n')
             idx = 0
             for cell in notebook.get('cells', []):
@@ -83,7 +90,9 @@ class IpynbFileProcessor(FileProcessorStrategy):
 
             with open(save_path, 'w', encoding='utf-8') as f:
                 json.dump(notebook, f, indent=4)
+            logger.info(f"IPYNB file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save IPYNB file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving file {self.file_path} to {save_path}: {e}"
             )

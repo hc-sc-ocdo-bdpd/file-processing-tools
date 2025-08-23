@@ -1,8 +1,11 @@
 from io import BytesIO
 from pptx import Presentation
 import msoffcrypto
+import logging
 from file_processing.errors import FileProcessingFailedError, FileCorruptionError
 from file_processing.file_processor_strategy import FileProcessorStrategy
+
+logger = logging.getLogger(__name__)
 
 class PptxFileProcessor(FileProcessorStrategy):
     """
@@ -26,7 +29,11 @@ class PptxFileProcessor(FileProcessorStrategy):
             metadata (dict): Populated with a message if `open_file` is False, otherwise initialized with default values.
         """
         super().__init__(file_path, open_file)
-        self.metadata = {'message': 'File was not opened'} if not open_file else self._default_metadata()
+        if not open_file:
+            logger.debug(f"PPTX file '{self.file_path}' was not opened (open_file=False).")
+            self.metadata = {'message': 'File was not opened'}
+        else:
+            self.metadata = self._default_metadata()
 
     def _default_metadata(self) -> dict:
         """
@@ -53,6 +60,8 @@ class PptxFileProcessor(FileProcessorStrategy):
             FileCorruptionError: If the file is corrupted or encrypted and cannot be opened.
             FileProcessingFailedError: If an error occurs during PPTX file processing.
         """
+        logger.info(f"Starting processing of PPTX file '{self.file_path}'.")
+
         if not self.open_file:
             return
 
@@ -62,12 +71,12 @@ class PptxFileProcessor(FileProcessorStrategy):
         try:
             office_file = msoffcrypto.OfficeFile(file_content)
             if office_file.is_encrypted():
+                logger.debug(f"PPTX file '{self.file_path}' is encrypted.")
                 self.metadata["has_password"] = True
                 return
         except Exception as e:
-            raise FileCorruptionError(
-                f"File is corrupted: {self.file_path}"
-            ) from e
+            logger.error(f"Failed to process PPTX file '{self.file_path}': {e}")
+            raise FileCorruptionError(f"File is corrupted: {self.file_path}") from e
 
         try:
             ppt = Presentation(file_content)
@@ -77,7 +86,9 @@ class PptxFileProcessor(FileProcessorStrategy):
                 'last_modified_by': ppt.core_properties.last_modified_by,
                 "num_slides": len(ppt.slides),
             })
+            logger.info(f"Successfully processed PPTX file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process PPTX file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -93,6 +104,8 @@ class PptxFileProcessor(FileProcessorStrategy):
             FileProcessingFailedError: If an error occurs while saving the PPTX file.
         """
         save_path = output_path or self.file_path
+        logger.info(f"Saving PPTX file '{self.file_path}' to '{save_path}'.")
+
         try:
             ppt = Presentation(self.file_path)
 
@@ -104,7 +117,9 @@ class PptxFileProcessor(FileProcessorStrategy):
             )
 
             ppt.save(save_path)
+            logger.info(f"PPTX file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save PPTX file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving to {save_path}: {e}"
             )

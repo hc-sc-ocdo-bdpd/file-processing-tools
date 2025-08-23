@@ -1,6 +1,9 @@
 import struct
+import logging
 from file_processing.file_processor_strategy import FileProcessorStrategy
 from file_processing.errors import FileProcessingFailedError
+
+logger = logging.getLogger(__name__)
 
 class GgufFileProcessor(FileProcessorStrategy):
     """
@@ -81,40 +84,43 @@ class GgufFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs or the file does not match expected format.
         """
+        logger.info(f"Starting processing of GGUF file '{self.file_path}'.")
+
         if not self.open_file:
+            logger.debug(f"GGUF file '{self.file_path}' was not opened (open_file=False).")
             return
         try:
             with open(self.file_path, "rb") as f:
-                # Read magic number
                 self.magic_number = f.read(4)
                 if self.magic_number != self.GGUF_MAGIC_NUMBER:
                     raise FileProcessingFailedError("Invalid GGUF magic number.")
 
-                # Read version
+                logger.debug(f"Detected magic number '{self.magic_number.decode('utf-8')}' for GGUF file '{self.file_path}'.")
+
                 self.version = struct.unpack("I", f.read(4))[0]
                 if self.version != 3:
                     raise FileProcessingFailedError("Unsupported GGUF version.")
 
-                # Read tensor count and metadata key-value count
+                logger.debug(f"GGUF version: {self.version}")
+
                 tensor_count = struct.unpack("Q", f.read(8))[0]
                 metadata_kv_count = struct.unpack("Q", f.read(8))[0]
 
-                # Read metadata key-value pairs
                 self.metadata = {}
                 for _ in range(metadata_kv_count):
                     key, value = self._read_metadata_kv(f)
                     self.metadata[key] = value
+                logger.debug(f"Extracted {metadata_kv_count} metadata entries from GGUF file '{self.file_path}'.")
 
-                # Extract alignment
                 self.alignment = self.metadata.get("general.alignment", 1)
 
-                # Read tensor information
                 self.tensors_info = []
                 for _ in range(tensor_count):
                     tensor_info = self._read_tensor_info(f)
                     self.tensors_info.append(tensor_info)
 
-                # Store extracted metadata
+                logger.debug(f"Extracted {tensor_count} tensors from GGUF file '{self.file_path}'.")
+
                 self.metadata.update({
                     "magic_number": self.magic_number.decode("utf-8"),
                     "version": self.version,
@@ -123,7 +129,10 @@ class GgufFileProcessor(FileProcessorStrategy):
                     "tensors_info": self.tensors_info
                 })
 
+                logger.info(f"Successfully processed GGUF file '{self.file_path}'.")
+
         except Exception as e:
+            logger.error(f"Failed to process GGUF file '{self.file_path}': {e}")
             raise FileProcessingFailedError(f"Error processing GGUF file {self.file_path}: {e}")
 
     def _read_string(self, f) -> str:
@@ -206,4 +215,5 @@ class GgufFileProcessor(FileProcessorStrategy):
 
     def save(self, output_path: str = None) -> None:
         """No save implementation needed for GGUF files (read-only)."""
+        logger.info(f"Save skipped for read-only GGUF file '{self.file_path}'.")
         pass

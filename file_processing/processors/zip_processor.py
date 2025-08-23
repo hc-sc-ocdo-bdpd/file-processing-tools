@@ -1,8 +1,11 @@
+import logging
 from pathlib import Path
 import shutil
 import zipfile
 from file_processing.errors import FileProcessingFailedError
 from file_processing.file_processor_strategy import FileProcessorStrategy
+
+logger = logging.getLogger(__name__)
 
 class ZipFileProcessor(FileProcessorStrategy):
     """
@@ -27,6 +30,8 @@ class ZipFileProcessor(FileProcessorStrategy):
         """
         super().__init__(file_path, open_file)
         self.metadata = {'message': 'File was not opened'} if not open_file else {}
+        if not open_file:
+            logger.debug(f"ZIP file '{self.file_path}' was not opened (open_file=False).")
 
     def process(self) -> None:
         """
@@ -37,8 +42,10 @@ class ZipFileProcessor(FileProcessorStrategy):
             FileProcessingFailedError: If an error occurs while processing the ZIP file.
         """
         if not self.open_file:
+            logger.debug(f"ZIP file '{self.file_path}' was not opened (open_file=False).")
             return
 
+        logger.info(f"Starting processing of ZIP file '{self.file_path}'.")
         try:
             z = zipfile.ZipFile(self.file_path, 'r')
             self.metadata.update({
@@ -46,7 +53,9 @@ class ZipFileProcessor(FileProcessorStrategy):
                 "file_types": self.extract_file_types(z),
                 "file_names": z.namelist()
             })
+            logger.info(f"Successfully processed ZIP file '{self.file_path}'.")
         except Exception as e:
+            logger.error(f"Failed to process ZIP file '{self.file_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while processing {self.file_path}: {e}"
             )
@@ -111,10 +120,13 @@ class ZipFileProcessor(FileProcessorStrategy):
         Raises:
             FileProcessingFailedError: If an error occurs while saving the ZIP file.
         """
+        save_path = output_path or str(self.file_path)
+        logger.info(f"Saving ZIP file '{self.file_path}' to '{save_path}'.")
         try:
-            output_path = output_path or str(self.file_path)
-            shutil.copy2(self.file_path, output_path)
+            shutil.copy2(self.file_path, save_path)
+            logger.info(f"ZIP file '{self.file_path}' saved successfully to '{save_path}'.")
         except Exception as e:
+            logger.error(f"Failed to save ZIP file '{self.file_path}' to '{save_path}': {e}")
             raise FileProcessingFailedError(
                 f"Error encountered while saving {self.file_path}: {e}"
             )
